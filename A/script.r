@@ -7,6 +7,19 @@ library(readxl)
 library(tidyverse)
 library(ggmosaic)
 library(gghalves)
+library(tidyverse)
+library(mgcv) 
+library(MASS)
+library(nnet)
+library(lme4) 
+library(gee)
+library(robustbase) 
+library(brglm)
+library(ggplot2) 
+library(aod) 
+library(pscl) 
+library(MuMIn)
+library(janitor)
 
 
 # Data import&cleaning -----------------------------------------------------------
@@ -136,5 +149,6 @@ abline(h=0,col=2)
 
 # HELP!
 # try it with GLM
-# clothing.lme <- glm(InteractionType ~ Gender + ClothingType + Gender*ClothingType)
+clothing.glm <- glm(Count ~ Gender + ClothingType + Gender*ClothingType, family="logit")
+
 
