@@ -1,0 +1,188 @@
+---
+title: "EDA 2"
+author: "Sneha Santha Prabakar"
+date: "3/17/2021"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(reshape2)
+library(stringr)
+library(ggrepel)
+```
+
+
+```{r}
+setwd("~")
+df = read_excel("Aclothing.xls")
+str(df)
+```
+
+# 1. Check for NA
+
+```{r}
+na_columns = colnames(df)[apply(df, 2, anyNA)]
+na_columns
+num_records = dim(df)[1]
+```
+
+No NA values in the dataset
+
+# 2. Distribution of each variable
+
+### 2.1. Clothing
+
+```{r}
+clothing_type_count = table(df$Clothing)
+clothing_type_count = melt(clothing_type_count)
+colnames(clothing_type_count)[1] = "Clothing_Type"
+colnames(clothing_type_count)[2] = "Frequency"
+clothing_type_count$Percentage = round(((clothing_type_count$Frequency)/num_records)*100, 1)
+```
+
+```{r}
+ggplot(data = clothing_type_count, 
+       aes(x = Clothing_Type, y = Percentage, fill = Percentage))+
+  geom_bar(stat = "identity") + scale_fill_viridis_b(direction=-1, option="cividis") + xlab("Clothing type") + geom_text(aes(x=Clothing_Type, y=Percentage, label=paste(Percentage, "%")), position=position_dodge(width=1), vjust=-0.5, size=3) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + labs(fill = "Percentage of students (in %)") + ylab("Percentage of students")+ ggtitle("Distribution of Clothing Type amongst all students") + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14))
+```
+
+
+### 2.2. Gender
+
+```{r}
+gender_count = table(df$Gender)
+gender_count = melt(gender_count)
+colnames(gender_count)[1] = "Gender"
+colnames(gender_count)[2] = "Frequency"
+gender_count$Percentage = round(((gender_count$Frequency)/num_records)*100, 1)
+gender_count
+```
+
+```{r}
+ggplot(data = gender_count, 
+       aes(x = Gender, y = Percentage, fill = Percentage))+
+  geom_bar(stat = "identity") + scale_fill_viridis_b(direction=-1, option="cividis") + xlab("Gender") + geom_text(aes(x=Gender, y=Percentage, label=paste(Percentage, "%")), position=position_dodge(width=1), vjust=-0.5, size=3) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + labs(fill = "Percentage of students") + ylab("Percentage of students (in %)")+ ggtitle("Distribution of Gender amongst all students") + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14))
+```
+
+### 2.3. Count of interactions
+
+```{r}
+count_distr = table(df$Count)
+count_distr = melt(count_distr)
+colnames(count_distr)[1] = "Number_of_interactions"
+colnames(count_distr)[2] = "Frequency"
+#plot(count_distr, lwd=5, pch=15, type="b")
+ggplot(data=count_distr, aes(x=Number_of_interactions, y=Frequency)) + geom_point() + geom_line() + xlab("Number of interactions") + ylab("Frequency") + geom_text(aes(label=Frequency), vjust=-1.5, hjust=-0.5) + ylim(0, 210) + ggtitle(str_wrap("Distribution of number of interactions between each student and the teacher", width=50)) + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14))+ theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black"))
+```
+
+### 2.4. Type of interactions
+
+```{r}
+type_intr = table(df$InteractionType)
+type_intr = melt(type_intr)
+colnames(type_intr)[1] = "Type_of_Interaction"
+colnames(type_intr)[2] = "Frequency"
+type_intr$Percentage = round(((type_intr$Frequency)/num_records)*100, 1)
+type_intr
+```
+
+```{r}
+ggplot(data = type_intr, 
+       aes(x = Type_of_Interaction, y = Percentage, fill=Percentage))+
+  geom_bar(stat = "identity") + xlab("Type of interaction") + geom_text(aes(x=Type_of_Interaction, y=Percentage, label=paste(Percentage, "%")), position=position_dodge(width=1), vjust=-0.5, size=3) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black"), legend.position = "none") + labs(fill = "Percentage of students") + ylab("Percentage of students (in %)")+ ggtitle("Distribution of Type of interaction with all students") + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14))
+```
+
+We can see that the data is evenly distributed - with equal number of observations for both the types of interaction. 
+
+# 3. Data Visualization
+
+### 3.1. Gender and Interaction type 
+
+```{r}
+gender_intr = table(df$Gender, df$InteractionType)
+gender_intr = melt(gender_intr)
+colnames(gender_intr)[1] = "Gender"
+colnames(gender_intr)[2] = "Type_Interaction"
+gender_intr$Percentage = round(((gender_intr$value)/num_records)*100, 1)
+```
+
+```{r}
+ggplot(gender_intr, aes(fill=Type_Interaction, y=Percentage, x=Gender)) + 
+    geom_bar(stat="identity") + geom_text(aes(x=Gender, y=Percentage, label=paste(Percentage, "%")), suze=3, position = position_stack(vjust=0.5)) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + labs(fill = "Type of Interaction") + ylab("Percentage of students (in %)")+ ggtitle("Type of interactions by Gender") + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14))
+```
+
+### 3.2. Clothing and Interaction type
+
+```{r}
+clothing_intr = table(df$Clothing, df$InteractionType)
+clothing_intr = melt(clothing_intr)
+colnames(clothing_intr)[1] = "Clothing_Type"
+colnames(clothing_intr)[2] = "Type_Interaction"
+clothing_intr$Percentage = round(((clothing_intr$value)/num_records)*100, 1)
+```
+
+```{r}
+ggplot(clothing_intr, aes(fill=Type_Interaction, y=Percentage, x=Clothing_Type)) + 
+    geom_bar(stat="identity") + geom_text(aes(x=Clothing_Type, y=Percentage, label=paste(Percentage, "%")), suze=3, position = position_stack(vjust=0.5)) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + labs(fill = "Type of Interaction") + ylab("Percentage of students (in %)")+ ggtitle("Type of interactions by Clothing Type") + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14))
+```
+
+### 3.3. Count of interactions and Interaction type
+
+```{r}
+count_intr = table(df$Count, df$InteractionType)
+count_intr = melt(count_intr)
+colnames(count_intr)[1] = "Count"
+colnames(count_intr)[2] = "Type_Interaction"
+count_intr$Percentage = round(((count_intr$value)/num_records)*100, 1)
+count_intr
+```
+```{r}
+ggplot(count_intr, aes(fill=Type_Interaction, y=Percentage, x=as.factor(Count))) + 
+    geom_bar(stat="identity") + geom_text_repel(aes(x=as.factor(Count), y=Percentage, label=paste(Percentage, "%")), size=2, position = position_stack(vjust=0.5)) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + labs(fill = "Type of Interaction") + ylab("Percentage of students (in %)")+ ggtitle("Type of interactions by Number of interactions with each student") + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14)) + coord_flip() + xlab("Number of interactions with a student")
+```
+
+We can make the following preliminary observations based on Figure 3.1 to 3.3:
+
+1. No influence of gender on the type of interaction - as each gender has equal distribution of positive and negative interactions
+2. No influence of clothing type on the type of interaction - as each clothing type has equal distribution of positive and negative interactions
+3. There is significant influence of the count of interaction on the type of interaction - as the distribution of positive and negative interaction varies significant for each count
+
+Hence, let us now look for any cross-relationship between the count of interaction and gender/clothing type
+
+# 4. Cross-relationship between the count of interaction and gender/clothing type
+
+```{r}
+all_three_var = table(df$Count, df$Gender, df$Clothing)
+all_three_var = melt(all_three_var)
+colnames(all_three_var)[1] = "Count"
+colnames(all_three_var)[2] = "Gender"
+colnames(all_three_var)[3] = "Clothing_Type"
+all_three_var$Percentage = round(((all_three_var$value)/num_records)*100, 1)
+all_three_var[all_three_var$Gender=="Male",]
+```
+
+```{r, fig.width=6}
+ggplot(data=all_three_var[all_three_var$Gender=="Male",], aes(x=Percentage, y=as.factor(Count), color=Clothing_Type)) + geom_point(size=3) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + xlab("Percentage of students (in %)")+ ylab("Count of interactions") + ggtitle(str_wrap("Cross-relationship between Count of interactions and Clothing Type (for Male students)", width=50)) + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14)) + theme(axis.text.y = element_text(angle = 90, vjust = 0.5)) 
+```
+
+
+```{r, fig.width=6}
+# use as.factor() to display all values of the column in the specific axis
+ggplot(data=all_three_var[all_three_var$Gender=="Female",], aes(x=Percentage, y=as.factor(Count), color=Clothing_Type), shape=17) + geom_point(size=3) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + xlab("Percentage of students (in %)")+ ylab("Count of interactions") + ggtitle(str_wrap("Cross-relationship between Count of interactions and Clothing Type (for Female students)", width=50)) + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14)) + theme(axis.text.y = element_text(angle = 90, vjust = 0.5)) 
+```
+
+
+Comparing the two graphs above, we can see that:
+
+1. For both genders, the students having clothing type = "Other" have maximum of 9 interactions only. 
+2. In Male students, there is a relatively more equal mix of Std and Unisex clothing types for more those who have had more than 10 interactions. Whereas, in Female students, a clear majority of students who have had more than 10 interactions are only those with Unisex clothing types.
+3. In Female students, the lowest share of students at almost every interaction are the ones with Unisex clothing (except only 3 occurrences). Whereas in Male students, it is more evenly distributed between students with Std and Unisex clothing. However, in both cases, there is only 1 occurence (count = 7 for Female students, and count = 4 for Male students) when the lowest share of students are those with Other type of clothing.
+
+
+
