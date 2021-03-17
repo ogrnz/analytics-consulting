@@ -1,8 +1,9 @@
 # Prepare session ---------------------------------------------------------
 
 #HV
-# setwd("E:/Universite de Genève/Faculté d'économie/Mon Master en statistique/A1S2/Analytics Consulting/analytics-consulting/A")
+ setwd("E:/Universite de Genève/Faculté d'économie/Mon Master en statistique/A1S2/Analytics Consulting/analytics-consulting/A")
 
+library(readxl)
 library(tidyverse)
 library(ggmosaic)
 library(gghalves)
@@ -24,11 +25,14 @@ clothing$InteractionType <- as.factor(clothing$InteractionType)
 str(clothing)
 head(clothing)
 
+clothing <- clothing %>% 
+  transmute(Gender,if_else(Gender==1,0,1))
+
 attach(clothing)
 
 # EDA (Exploratory Data Analysis) -----------------------------------------
 
-boxplot(clot)
+boxplot(clothing)
 
 
 
@@ -99,7 +103,7 @@ clothing %>% ggplot(aes(x=ClothingType,
   labs(title="Relation between clothing and type of interactions",
        x="Clothing Type",
        y="Type of Interactions",
-       caption="Figure 5")+
+       caption="Figure 5") +
   ggsave("figures/fig5.png")
 
 clothing %>% ggplot(aes(x=Gender,
@@ -131,4 +135,6 @@ plot(resid(clothing.lme)~Gender)
 abline(h=0,col=2)
 
 # HELP!
-clothing.lme <- lm(InteractionType ~ Gender + ClothingType + Gender*ClothingType)
+# try it with GLM
+# clothing.lme <- glm(InteractionType ~ Gender + ClothingType + Gender*ClothingType)
+
