@@ -48,8 +48,23 @@ clothing_type_count$Percentage = round(((clothing_type_count$Frequency)/num_reco
 
 ```{r}
 ggplot(data = clothing_type_count, 
-       aes(x = Clothing_Type, y = Percentage, fill = Percentage))+
-  geom_bar(stat = "identity") + scale_fill_viridis_b(direction=-1, option="cividis") + xlab("Clothing type") + geom_text(aes(x=Clothing_Type, y=Percentage, label=paste(Percentage, "%")), position=position_dodge(width=1), vjust=-0.5, size=3) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + labs(fill = "Percentage of students (in %)") + ylab("Percentage of students")+ ggtitle("Distribution of Clothing Type amongst all students") + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14))
+       aes(x = Clothing_Type, y = Percentage, fill = Percentage)) +
+  geom_bar(stat = "identity") +
+  scale_fill_viridis_b(direction=-1, option="cividis") +
+  xlab("Clothing type") +
+  geom_text(aes(x=Clothing_Type, y=Percentage, label=paste(Percentage, "%")),
+            position=position_dodge(width=1),
+            vjust=-0.5,
+            size=3) +
+  theme(
+    panel.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(colour = "black")
+  ) +
+  labs(fill = "Percentage of students (in %)") + ylab("Percentage of students") +
+  ggtitle("Distribution of Clothing Type amongst all students") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14))
 ```
 
 

@@ -38,9 +38,6 @@ clothing$InteractionType <- as.factor(clothing$InteractionType)
 str(clothing)
 head(clothing)
 
-clothing <- clothing %>% 
-  transmute(Gender,if_else(Gender==1,0,1))
-
 attach(clothing)
 
 # EDA (Exploratory Data Analysis) -----------------------------------------
@@ -54,7 +51,8 @@ boxplot(clothing)
 # First I show the possible relationship
 
 clothing %>% ggplot(aes(x=ClothingType,
-                        y=Count)) +
+                        y=Count,
+                        color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.4) +
   geom_smooth(se = FALSE) +
   theme_minimal() +
@@ -81,7 +79,8 @@ clothing %>% ggplot(aes(x=ClothingType,
   ggsave("figures/fig2.png")
 
 clothing %>% ggplot(aes(x=Gender,
-                        y=Count)) +
+                        y=Count,
+                        color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.4) +
   geom_smooth(se = FALSE) +
   theme_minimal() +
@@ -89,6 +88,7 @@ clothing %>% ggplot(aes(x=Gender,
        x="Gender",
        y="Number of interactions",
        caption="Figure 3")+
+  scale_fill_viridis_d(begin = 0.1, end = 0.8)+
   ggsave("figures/fig3.png")
 
 clothing %>% ggplot(aes(x=Gender,
@@ -109,7 +109,8 @@ clothing %>% ggplot(aes(x=Gender,
 
 
 clothing %>% ggplot(aes(x=ClothingType,
-                        y=InteractionType)) +
+                        y=InteractionType,
+                        color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.4) +
   geom_smooth(se = FALSE) +
   theme_minimal() +
@@ -120,7 +121,8 @@ clothing %>% ggplot(aes(x=ClothingType,
   ggsave("figures/fig5.png")
 
 clothing %>% ggplot(aes(x=Gender,
-                        y=InteractionType)) +
+                        y=InteractionType,
+                        color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.35) +
   geom_smooth(se = FALSE) +
   theme_minimal() +
