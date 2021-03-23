@@ -1,0 +1,177 @@
+---
+title: "Untitled"
+author: "Vivian Carranza"
+date: "22/3/2021"
+output: html_document
+---
+
+## Cluster Analysis
+
+```{r, results='hide', message=FALSE, warning= FALSE}
+
+library(DMwR)
+library(factoextra)
+library(reshape2)
+library(ggplot2)
+library(FNN)
+library(caret)
+library(readxl)
+library(corrplot)
+library(cluster)
+
+telco_data <- read_excel("Btelco.xls") #na.omit(read.csv("Cereals.csv", header = T, sep = ","))
+
+```
+
+
+```{r, fig.width=14, fig.height=12}
+datos_telco <- telco_data
+drop <- c("Age","AveWeekend","AveOffPeak","AvePeak","Weekend_calls_Sum","L_O_S","AveNational","Weekend_mins_Sum","Dropped_Calls")
+  #c("AvePeak", "AveOffPeak", "AveWeekend", "Age","AveNational", "call_cost_per_min","L_O_S","Weekend_calls_Sum", "Weekend_mins_Sum")
+datos <- datos_telco[,!(names(datos_telco) %in% drop)]
+#datos <- datos_telco
+
+#cor(datos)
+corr <- round(cor(datos, method = "spearman"),1)
+corrplot(corr, method = "square")
+
+#Normalize 
+data_norm <- preProcess(datos, method="range")
+data_norm <- predict(data_norm, datos)
+#row.names(data_norm) <- datos[,1]
+
+#Distances
+d.norm <- dist(data_norm, method = "euclidean")
+#fviz_dist(d.norm, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+```
+
+Dendrogram  of the single Linkage
+```{r, fig.width=14, fig.height=12}
+
+#Single Linkage
+hc1 <- hclust(d.norm, method = "ward.D2")
+plot(hc1, hang = -1, ann = FALSE)
+rect.hclust(hc1, k = 6, border = "red")
+
+```
+
+
+
+
+
+
+Profile plot of the centroids of the single linkage 
+```{r, fig.width=14}
+#Single Linkage
+hc1 <- hclust(d.norm, method = "ward.D2")
+
+#Centroides Single Linkage 
+clusters_hc1 <- cutree(hc1, k = 6)
+centroide_hc1 <- aggregate(data_norm, by = list(clusters_hc1), FUN = mean) 
+centroide_hc1 <- round(centroide_hc1,2)
+
+centroide_hc1 <- melt(data = centroide_hc1[,1:ncol(centroide_hc1)], id.vars = "Group.1")
+
+ggplot(centroide_hc1, aes(x = variable, y = value, group = Group.1, color = factor(Group.1), size = 1)) +
+    geom_line(size=0.5)+
+    theme(axis.text.x = element_text(angle = 90))
+
+centroide_hc1
+#clusters_hc1
+
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+```
+
+
+
+# Automatic 
+
+```{r, fig.width=14}
+
+datos <- telco_data
+n_clusters <- 6
+
+#Normalize 
+data_norm <- preProcess(datos, method="range")
+data_norm <- predict(data_norm, datos)
+
+#Distances
+d.norm <- dist(data_norm, method = "euclidean")
+
+#Single Linkage
+hc1 <- hclust(d.norm, method = "ward.D2")
+#Centroides Single Linkage 
+clusters_hc1 <- cutree(hc1, k = n_clusters)
+centroide_hc <- aggregate(data_norm, by = list(clusters_hc1), FUN = mean) 
+centroide_hc <- round(centroide_hc,2)
+centroide_hc1 <- melt(data = centroide_hc[,1:ncol(centroide_hc)], id.vars = "Group.1")
+
+#All variables
+ggplot(centroide_hc1, aes(x = variable, y = value, group = Group.1, color = factor(Group.1), size = 1)) +
+    geom_line(size=0.5)+
+    theme(axis.text.x = element_text(angle = 90))
+
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+
+
+#Variable selection
+centroide_transpose <- as.data.frame(t(as.matrix(centroide_hc)))
+centroide_transpose <- transform(centroide_transpose, SD=apply(centroide_transpose,1, sd, na.rm = TRUE))
+drop <- row.names(centroide_transpose)[which(centroide_transpose$SD<0.1)] 
+drop <- c(drop,"Dropped_Calls")
+
+datos <- datos[,!(names(datos) %in% drop)]
+
+#Normalize 
+data_norm <- preProcess(datos, method="range")
+data_norm <- predict(data_norm, datos)
+
+#Distances
+d.norm <- dist(data_norm, method = "euclidean")
+
+#Single Linkage
+hc1 <- hclust(d.norm, method = "ward.D2")
+#Centroides Single Linkage 
+clusters_hc1 <- cutree(hc1, k = n_clusters)
+centroide_hc1 <- aggregate(data_norm, by = list(clusters_hc1), FUN = mean) 
+centroide_hc1 <- round(centroide_hc1,2)
+
+centroide_hc1 <- melt(data = centroide_hc1[,1:ncol(centroide_hc1)], id.vars = "Group.1")
+
+ggplot(centroide_hc1, aes(x = variable, y = value, group = Group.1, color = factor(Group.1), size = 1)) +
+    geom_line(size=0.5)+
+    theme(axis.text.x = element_text(angle = 90))
+
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+
+
+```
+
+
+
+
+
+
+```{r}
+#centroide_hc1
+#clusters_hc1
+
+aggregate(clusters_hc1, by = list(clusters_hc1), FUN = length)
+
+clusplot(data_norm[clusters_hc1==c(4,3),], clusters_hc1[clusters_hc1==c(4,3)], color=TRUE, shade=TRUE, lines=2, labels = 3)
+
+```
+
+
+
+
+
+
+
+
+Questions: 
+- What kind of conclusions/decisions do you want to make with this groups?
+  - Do you want to predict something? is there a special variable that we want to optimize?
+  - Do you want to just group these users or are you looking for rules to group future users? 
+  - 
