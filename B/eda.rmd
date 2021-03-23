@@ -1,0 +1,116 @@
+# Basic EDA for case study B
+## Telco
+
+
+```{r, echo=FALSE, include=FALSE}
+library(tidyverse)
+library(readxl)
+library(ggpubr)
+library(corrr)
+library(GGally)
+```
+
+
+
+```{r, echo=FALSE, include=FALSE}
+telco <- read_excel("Btelco.xls")
+```
+
+
+```{r}
+summary(telco)
+telco[1,]
+attach(telco)
+str(telco)
+```
+
+Cols:       
+1-2: basic customer info        
+3-19: call data (duration)      
+20-24: tariff schemes (cost)        
+
+All variables are numeric.
+
+```{r, echo=FALSE, include=FALSE}
+telco[!complete.cases(telco),]
+```
+We have no NAs.
+
+### Overall
+
+```{r}
+pairs_tot <- ggpairs(telco, aes(alpha = 0.4))
+pairs_tot
+```
+
+Can't see anything!
+
+```{r}
+pairs1_2 <- ggpairs(telco[, 1:2], aes(alpha = 0.4))
+pairs1_2
+```
+
+`Age` is not so special. No correlation. `L_O_S` is bimodal, 2 groups ?
+
+```{r}
+#It's quite slow..
+pairs3_19 <- ggpairs(telco[, 3:19], aes(alpha = 0.4))
+pairs3_19
+```
+
+`Nat_call_cost_Sum`, `National_mins`, `All_calls_mins` -> multinomial distrib?
+
+`Peak_mins_Sum` together with `Nat_call_cost_Sum` -> 2 clusters
+
+```{r}
+pairs20_24 <- ggpairs(telco[, 20:24], aes(alpha = 0.4))
+pairs20_24
+```
+
+All variables multinomial, tariffs grouping?
+
+Let's explore a subset of the interesting variables:
+
+```{r}
+subset <- telco[c(1:2, 5, 11, 16, 18, 20:24)]
+pairs_sub <- ggpairs(subset, aes(alpha = 0.4))
+pairs_sub
+```
+
+
+### Basic customer info
+```{r}
+summary(telco[, 1:2])
+boxplot(telco[, 1:2])
+
+ggplot(data=telco) + 
+    geom_histogram(mapping = aes(x = Age), binwidth = 1)
+
+ggplot(data=telco) + 
+    geom_histogram(mapping = aes(x = L_O_S), binwidth = .8)
+
+#The outlier
+telco[which(telco$Age==82),]
+```
+
+Just one outlier for `Age`. 
+
+```{r, echo=FALSE}
+telco_cor <- telco %>%
+    correlate() %>%
+    rearrange(method = "MDS", absolute = FALSE) %>%
+    shave() 
+telco_cor
+
+telco_cor_plot <- telco_cor %>%
+    rplot(shape = 19, colors = c("red", "green")) +
+    theme(axis.text.x = element_text(angle = 90))
+telco_cor_plot
+```
+
+
+
+
+Questions:
+- does the client know what "kind of groups" he wants?
+
