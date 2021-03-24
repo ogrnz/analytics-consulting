@@ -19,7 +19,8 @@ library(ggrepel)
 
 
 ```{r}
-setwd("~")
+setwd("E:/Universite de Genève/Faculté d'économie/Mon Master en statistique/A1S2/Analytics Consulting/analytics-consulting/A")
+
 df = read_excel("Aclothing.xls")
 str(df)
 ```

@@ -20,7 +20,10 @@ library(aod)
 library(pscl) 
 library(MuMIn)
 library(janitor)
-
+library(ggplot2)
+library(reshape2)
+library(stringr)
+library(ggrepel)
 
 # Data import&cleaning -----------------------------------------------------------
 
@@ -54,6 +57,7 @@ clothing %>% ggplot(aes(x=ClothingType,
                         y=Count,
                         color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.4) +
+  scale_color_viridis_d(direction=-1, option="cividis") +
   geom_smooth(se = FALSE) +
   theme_minimal() +
   labs(title="Relation between clothing and number of interactions",
@@ -88,7 +92,8 @@ clothing %>% ggplot(aes(x=Gender,
        x="Gender",
        y="Number of interactions",
        caption="Figure 3")+
-  scale_fill_viridis_d(begin = 0.1, end = 0.8)+
+  scale_fill_viridis_d(begin = 0.1, end = 0.8) +
+scale_color_viridis_d(direction=-1, option="cividis") +
   ggsave("figures/fig3.png")
 
 clothing %>% ggplot(aes(x=Gender,
@@ -112,6 +117,7 @@ clothing %>% ggplot(aes(x=ClothingType,
                         y=InteractionType,
                         color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.4) +
+scale_color_viridis_d(direction=-1, option="cividis")  +
   geom_smooth(se = FALSE) +
   theme_minimal() +
   labs(title="Relation between clothing and type of interactions",
@@ -124,7 +130,8 @@ clothing %>% ggplot(aes(x=Gender,
                         y=InteractionType,
                         color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.35) +
-  geom_smooth(se = FALSE) +
+  geom_smooth(se = FALSE) + 
+  scale_color_viridis_d(direction=-1, option="cividis") +
   theme_minimal() +
   labs(title="Relation between gender and type of interactions",
        x="Gender",
