@@ -144,7 +144,7 @@ count_intr
 ```
 ```{r}
 ggplot(count_intr, aes(fill=Type_Interaction, y=Percentage, x=as.factor(Count))) + 
-    geom_bar(stat="identity") + geom_text_repel(aes(x=as.factor(Count), y=Percentage, label=paste(Percentage, "%")), size=2, color="red", position = position_stack(vjust=0.5)) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + labs(fill = "Type of Interaction") + ylab("Percentage of students (in %)")+ ggtitle("Type of interactions by Number of interactions with each student") + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14)) + coord_flip() + xlab("Number of interactions with a student") + scale_fill_viridis_d(direction=-1, option="cividis")
+    geom_bar(stat="identity") + geom_text_repel(aes(x=as.factor(Count), y=Percentage, label=paste(Percentage, "%")), size=2, color="red", position = position_stack(vjust=0.15)) + theme(panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour="black")) + labs(fill = "Type of Interaction") + ylab("Percentage of students (in %)")+ ggtitle("Type of interactions by Number of interactions with each student") + theme(plot.title = element_text(hjust = 0.5, face="bold.italic", size=14)) + coord_flip() + xlab("Number of interactions with a student") + scale_fill_viridis_d(direction=-1, option="cividis")
 ```
 
 We can make the following preliminary observations based on Figure 3.1 to 3.3:
