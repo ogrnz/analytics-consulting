@@ -57,12 +57,14 @@ clothing %>% ggplot(aes(x=ClothingType,
                         y=Count,
                         color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.4) +
-  scale_color_viridis_d(direction=-1, option="cividis") +
+  scale_color_viridis_d(direction=-1, option="cividis",labels=c("Negative","Positive")) +
   geom_smooth(se = FALSE) +
   theme_minimal() +
   labs(#title="Relation between clothing and number of interactions",
        x="Clothing Type",
-       y="Number of interactions") +
+       y="Number of interactions",
+       color="Interaction Type") +
+  scale_x_discrete(labels=c("Special","Standard","Unisex")) +
   ggsave("figures/fig1.png")
 
 clothing %>% ggplot(aes(x=ClothingType,
@@ -75,6 +77,7 @@ clothing %>% ggplot(aes(x=ClothingType,
   labs(#title="Relation between clothing and number of interactions",
        x="Clothing Type",
        y="Number of interactions") +
+  scale_x_discrete(labels=c("Special","Standard","Unisex")) +
   guides(fill = FALSE)+
   coord_flip() +
   scale_fill_viridis_d(direction=-1, option="cividis") +
@@ -88,8 +91,9 @@ clothing %>% ggplot(aes(x=Gender,
   theme_minimal() +
   labs(#title="Relation between gender and number of interactions",
        x="Gender",
-       y="Number of interactions") +
-  scale_color_viridis_d(direction=-1, option="cividis") +
+       y="Number of interactions",
+       color="Interaction Type") +
+  scale_color_viridis_d(direction=-1, option="cividis",labels=c("Negative","Positive")) +
   ggsave("figures/fig3.png")
 
 clothing %>% ggplot(aes(x=Gender,
@@ -112,12 +116,15 @@ clothing %>% ggplot(aes(x=ClothingType,
                         y=InteractionType,
                         color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.4) +
-scale_color_viridis_d(direction=-1, option="cividis")  +
+scale_color_viridis_d(direction=-1, option="cividis",labels=c("Negative","Positive"))  +
   geom_smooth(se = FALSE) +
   theme_minimal() +
   labs(#title="Relation between clothing and type of interactions",
        x="Clothing Type",
-       y="Type of Interactions") +
+       y="Type of Interactions",
+       color="Interaction Type") +
+  scale_x_discrete(labels=c("Special","Standard","Unisex")) +
+  scale_y_discrete(labels=c("Negative","Positive")) +
   ggsave("figures/fig5.png")
 
 clothing %>% ggplot(aes(x=Gender,
@@ -125,11 +132,13 @@ clothing %>% ggplot(aes(x=Gender,
                         color=InteractionType)) +
   geom_jitter(height = 0.25,width = 0.25, alpha = 0.35) +
   geom_smooth(se = FALSE) + 
-  scale_color_viridis_d(direction=-1, option="cividis") +
+  scale_color_viridis_d(direction=-1, option="cividis", labels=c("Negative","Positive")) +
+  scale_y_discrete(labels=c("Negative","Positive")) +
   theme_minimal() +
   labs(#title="Relation between gender and type of interactions",
        x="Gender",
-       y="Type of Interactions")+
+       y="Type of Interactions",
+       color="Interaction Type")+
   ggsave("figures/fig6.png")
 
 # CONCLUSION: no effect on gender or clothing type on number/type of interaction
