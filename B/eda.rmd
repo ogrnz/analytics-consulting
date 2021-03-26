@@ -84,10 +84,12 @@ summary(telco[, 1:2])
 boxplot(telco[, 1:2])
 
 ggplot(data=telco) + 
-    geom_histogram(mapping = aes(x = Age), binwidth = 1)
+    geom_histogram(mapping = aes(x = Age), binwidth = 1) +
+    ggsave("figures/Age_hist.png")
 
 ggplot(data=telco) + 
-    geom_histogram(mapping = aes(x = L_O_S), binwidth = .8)
+    geom_histogram(mapping = aes(x = L_O_S), binwidth = .8) +
+    ggsave("figures/L_O_S_hist.png")
 
 #The outlier
 telco[which(telco$Age==82),]
@@ -104,13 +106,8 @@ telco_cor
 
 telco_cor_plot <- telco_cor %>%
     rplot(shape = 19, colors = c("red", "green")) +
-    theme(axis.text.x = element_text(angle = 90))
+    theme(axis.text.x = element_text(angle = 90))  +
+  ggsave("figures/corrplot.png")
 telco_cor_plot
 ```
-
-
-
-
-Questions:
-- does the client know what "kind of groups" he wants?
 
