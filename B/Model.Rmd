@@ -157,7 +157,7 @@ clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
 
 ```{r}
 #centroide_hc1
-#clusters_hc1
+# clusters_hc1
 
 aggregate(clusters_hc1, by = list(clusters_hc1), FUN = length)
 
