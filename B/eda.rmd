@@ -11,16 +11,25 @@ library(GGally)
 ```
 
 
+Updated EDA with Vivian's model
+```{r}
+# Add the new column (clusters_hc1 already in env)
+#telco$group = clusters_hc1 
+#head(telco) #yikes 25 cols
+#write.csv(telco, file="grouped_telco.csv")
 
-```{r, echo=FALSE, include=FALSE}
-telco <- read_excel("Btelco.xls")
+telco2 <- read.csv("grouped_telco.csv")
+
+telco2$group <- as.factor(telco2$group)
+str(telco2)
 ```
 
-
 ```{r}
+# Sanity check
 summary(telco)
 telco[1,]
-attach(telco)
+telco[, ncol(telco)]
+sattach(telco)
 str(telco)
 ```
 
@@ -110,4 +119,8 @@ telco_cor_plot <- telco_cor %>%
   ggsave("figures/corrplot.png")
 telco_cor_plot
 ```
+
+
+
+
 
