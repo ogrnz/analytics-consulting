@@ -90,34 +90,23 @@ pairs_sub <- ggpairs(subset, aes(color = group, alpha = 0.4))
 pairs_sub
 ```
 
+### Misc
 
-# Histograms
-Let's check only histograms:
+A few subsets to use.
 
 ```{r}
 sub1_2 <- telco[, c(1:2, 25)]
 sub3_19 <- telco[, c(3:19, 25)]
 sub20_24 <- telco[, c(20:25)]
+
+# From the model (only the interesting variables)
+#names <- as.vector(colnames(data_norm))
+#names[12] <- "actual.call.cost"
+submodel <- telco %>% select(all_of(names))
 ```
 
-```{r}
-#Customer info
-hist1 <- ggplot(data = sub1_2, mapping = aes(x = Age, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/histAge.png")
+The interesting variables from Vivian's model are:
 
-hist2 <- ggplot(data = sub1_2, mapping = aes(x = L_O_S, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/histLOS.png")
-
-# Tarifs schemes
-hist20 <- ggplot(data = sub20_24, mapping = aes(x = call_cost_per_min, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_call_cost_per_min.png")
-
-hist21 <- ggplot(data = sub20_24, mapping = aes(x = actual.call.cost, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_actual.call.cost.png")
-
-hist22 <- ggplot(data = sub20_24, mapping = aes(x = Total_call_cost, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_Total_call_cost.png")
-
-hist23 <- ggplot(data = sub20_24, mapping = aes(x = Total_Cost, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_Total_Cost.png")
-
-hist24 <- ggplot(data = sub20_24, mapping = aes(x = average_cost_min, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_average_cost_min.png")
-```
-Don't know if it gives us a lot of information..
 
 ## Groups comparison
 
