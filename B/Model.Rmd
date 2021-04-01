@@ -33,6 +33,9 @@ datos <- datos_telco[,!(names(datos_telco) %in% drop)]
 #cor(datos)
 corr <- round(cor(datos, method = "spearman"),1)
 corrplot(corr, method = "square")
+png("figures/correlation_plot.png")
+corrplot(corr, method = "square")
+dev.off()
 
 #Normalize 
 data_norm <- preProcess(datos, method="range")
@@ -50,7 +53,12 @@ Dendrogram  of the single Linkage
 
 #Single Linkage
 hc1 <- hclust(d.norm, method = "ward.D2")
+
 plot(hc1, hang = -1, ann = FALSE)
+
+png("figures/dendogram.png",width = 750)
+plot(hc1, hang = -1, ann = FALSE)
+dev.off()
 rect.hclust(hc1, k = 6, border = "red")
 
 ```
@@ -81,6 +89,15 @@ centroide_hc1
 #clusters_hc1
 
 clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+png("figures/cluster_plot_6_groups.png",width=350,height=350)
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+dev.off()
+
+clusters_hc1 <- cutree(hc1, k = 2)
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+png("figures/cluster_plot_two_groups.png",width=350,height=350)
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+dev.off()
 ```
 
 
@@ -163,11 +180,5 @@ aggregate(clusters_hc1, by = list(clusters_hc1), FUN = length)
 
 clusplot(data_norm[clusters_hc1==c(4,3),], clusters_hc1[clusters_hc1==c(4,3)], color=TRUE, shade=TRUE, lines=2, labels = 3)
 
-png("figures/cluster_plot",width = 350)
-
-clusplot(data_norm[clusters_hc1==c(4,3),], clusters_hc1[clusters_hc1==c(4,3)], color=TRUE,
-         shade=TRUE, lines=2, labels = 3)
-
-dev.off()
 
 ```

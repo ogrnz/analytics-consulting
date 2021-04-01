@@ -130,7 +130,9 @@ submodel <- telco %>% select(all_of(names))
 
 ### General
 ```{r}
-ggplot(data = telco, aes(x = group, fill = group)) + geom_bar() + ggsave("figures/barplot_groups.png")
+ggplot(data = telco, aes(x = group, fill = group)) + geom_bar() +
+  scale_fill_viridis_d() +
+  ggsave("figures/barplot_groups.png")
 ```
 
 
