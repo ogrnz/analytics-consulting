@@ -8,6 +8,7 @@ library(readxl)
 library(ggpubr)
 library(corrr)
 library(GGally)
+library(dplyr)
 ```
 
 
@@ -18,10 +19,10 @@ Updated EDA with Vivian's model
 #head(telco) #yikes 25 cols
 #write.csv(telco, file="grouped_telco.csv")
 
-telco2 <- read.csv("grouped_telco.csv")
+telco <- read.csv("grouped_telco.csv")
 
-telco2$group <- as.factor(telco2$group)
-str(telco2)
+telco$group <- as.factor(telco$group)
+str(telco)
 ```
 
 ```{r}
@@ -29,7 +30,6 @@ str(telco2)
 summary(telco)
 telco[1,]
 telco[, ncol(telco)]
-sattach(telco)
 str(telco)
 ```
 
@@ -42,20 +42,24 @@ All variables are numeric.
 
 ```{r, echo=FALSE, include=FALSE}
 telco[!complete.cases(telco),]
+
+#Drop first index column
+telco <- subset(telco, select=-c(X))
+str(telco)
 ```
 We have no NAs.
 
 ### Overall
 
 ```{r}
-pairs_tot <- ggpairs(telco, aes(alpha = 0.4))
+pairs_tot <- ggpairs(telco, aes(color = group, alpha = 0.4))
 pairs_tot
 ```
 
 Can't see anything!
 
 ```{r}
-pairs1_2 <- ggpairs(telco[, 1:2], aes(alpha = 0.4))
+pairs1_2 <- ggpairs(telco[, c(1:2, 25)], aes(color = group, alpha = 0.4))
 pairs1_2
 ```
 
@@ -63,7 +67,7 @@ pairs1_2
 
 ```{r}
 #It's quite slow..
-pairs3_19 <- ggpairs(telco[, 3:19], aes(alpha = 0.4))
+pairs3_19 <- ggpairs(telco[, c(3:19, 25)], aes(color = group, alpha = 0.4))
 pairs3_19
 ```
 
@@ -72,7 +76,7 @@ pairs3_19
 `Peak_mins_Sum` together with `Nat_call_cost_Sum` -> 2 clusters
 
 ```{r}
-pairs20_24 <- ggpairs(telco[, 20:24], aes(alpha = 0.4))
+pairs20_24 <- ggpairs(telco[, 20:25], aes(color = group, alpha = 0.4))
 pairs20_24
 ```
 
@@ -81,19 +85,94 @@ All variables multinomial, tariffs grouping?
 Let's explore a subset of the interesting variables:
 
 ```{r}
-subset <- telco[c(1:2, 5, 11, 16, 18, 20:24)]
-pairs_sub <- ggpairs(subset, aes(alpha = 0.4))
+subset <- telco[, c(1:2, 5, 11, 16, 18, 20:25)]
+pairs_sub <- ggpairs(subset, aes(color = group, alpha = 0.4))
 pairs_sub
 ```
 
 
+# Histograms
+Let's check only histograms:
+
+```{r}
+sub1_2 <- telco[, c(1:2, 25)]
+sub3_19 <- telco[, c(3:19, 25)]
+sub20_24 <- telco[, c(20:25)]
+```
+
+```{r}
+#Customer info
+hist1 <- ggplot(data = sub1_2, mapping = aes(x = Age, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/histAge.png")
+
+hist2 <- ggplot(data = sub1_2, mapping = aes(x = L_O_S, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/histLOS.png")
+
+# Tarifs schemes
+hist20 <- ggplot(data = sub20_24, mapping = aes(x = call_cost_per_min, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_call_cost_per_min.png")
+
+hist21 <- ggplot(data = sub20_24, mapping = aes(x = actual.call.cost, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_actual.call.cost.png")
+
+hist22 <- ggplot(data = sub20_24, mapping = aes(x = Total_call_cost, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_Total_call_cost.png")
+
+hist23 <- ggplot(data = sub20_24, mapping = aes(x = Total_Cost, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_Total_Cost.png")
+
+hist24 <- ggplot(data = sub20_24, mapping = aes(x = average_cost_min, colour = group)) + geom_freqpoly(binwidth = 3) + ggsave("figures/hist/hist_average_cost_min.png")
+```
+Don't know if it gives us a lot of information..
+
+## Groups comparison
+
+### Histograms
+
+```{r}
+hist_col <- function (data, column) {
+    ggplot(data = data, aes_string(x = column, color = data$group)) +
+    geom_freqpoly(binwidth = 30) + xlab(column) +
+    ggsave(paste("figures/hist/hist_", column, ".png"))
+}
+```
+
+```{r}
+histograms <- lapply(colnames(telco), hist_col, data = telco)
+
+histograms
+```
+
+
+### Boxplots
+
+```{r}
+box_col <- function (data, column) {
+    ggplot(data = data, aes_string(x = column, y = data$group)) +
+    geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups") +
+    ggsave(paste("figures/boxplots/bxplt_", column, ".png"))
+}
+```
+
+```{r}
+boxplots <- lapply(colnames(telco), box_col, data = telco)
+
+boxplots
+```
+
+## Groupwise EDA
+
+### 1.
+
+
+
+
+
+
+
+## Old
+EDA V1
 ### Basic customer info
 ```{r}
 summary(telco[, 1:2])
 boxplot(telco[, 1:2])
 
 ggplot(data=telco) + 
-    geom_histogram(mapping = aes(x = Age), binwidth = 1) +
+    geom_histogram(mapping = aes(x = Age, color=group), binwidth = 1) +
     ggsave("figures/Age_hist.png")
 
 ggplot(data=telco) + 
