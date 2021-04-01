@@ -1,5 +1,16 @@
+---
+title: "EDA case B"
+output:
+  pdf_document: default
+  html_document: default
+---
+
 # Basic EDA for case study B
 ## Telco
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
 
 
 ```{r, echo=FALSE, include=FALSE}
@@ -9,6 +20,7 @@ library(ggpubr)
 library(corrr)
 library(GGally)
 library(dplyr)
+library(gridExtra)
 ```
 
 
@@ -52,23 +64,23 @@ We have no NAs.
 ### Overall
 
 ```{r}
-pairs_tot <- ggpairs(telco, aes(color = group, alpha = 0.4))
-pairs_tot
+#pairs_tot <- ggpairs(telco, aes(color = group, alpha = 0.4))
+#pairs_tot
 ```
 
 Can't see anything!
 
 ```{r}
-pairs1_2 <- ggpairs(telco[, c(1:2, 25)], aes(color = group, alpha = 0.4))
-pairs1_2
+#pairs1_2 <- ggpairs(telco[, c(1:2, 25)], aes(color = group, alpha = 0.4))
+#pairs1_2
 ```
 
 `Age` is not so special. No correlation. `L_O_S` is bimodal, 2 groups ?
 
 ```{r}
 #It's quite slow..
-pairs3_19 <- ggpairs(telco[, c(3:19, 25)], aes(color = group, alpha = 0.4))
-pairs3_19
+#pairs3_19 <- ggpairs(telco[, c(3:19, 25)], aes(color = group, alpha = 0.4))
+#pairs3_19
 ```
 
 `Nat_call_cost_Sum`, `National_mins`, `All_calls_mins` -> multinomial distrib?
@@ -76,8 +88,8 @@ pairs3_19
 `Peak_mins_Sum` together with `Nat_call_cost_Sum` -> 2 clusters
 
 ```{r}
-pairs20_24 <- ggpairs(telco[, 20:25], aes(color = group, alpha = 0.4))
-pairs20_24
+#pairs20_24 <- ggpairs(telco[, 20:25], aes(color = group, alpha = 0.4))
+#pairs20_24
 ```
 
 All variables multinomial, tariffs grouping?
@@ -86,8 +98,8 @@ Let's explore a subset of the interesting variables:
 
 ```{r}
 subset <- telco[, c(1:2, 5, 11, 16, 18, 20:25)]
-pairs_sub <- ggpairs(subset, aes(color = group, alpha = 0.4))
-pairs_sub
+#pairs_sub <- ggpairs(subset, aes(color = group, alpha = 0.4))
+#pairs_sub
 ```
 
 ### Misc
@@ -99,31 +111,46 @@ sub1_2 <- telco[, c(1:2, 25)]
 sub3_19 <- telco[, c(3:19, 25)]
 sub20_24 <- telco[, c(20:25)]
 
+# Per groups
+sub1 <- telco[which(telco$group==1),]
+sub2 <- telco[which(telco$group==2),]
+sub3 <- telco[which(telco$group==3),]
+sub4 <- telco[which(telco$group==4),]
+sub5 <- telco[which(telco$group==5),]
+sub6 <- telco[which(telco$group==6),]
+
 # From the model (only the interesting variables)
 #names <- as.vector(colnames(data_norm))
+names <- c("group", "Peak_calls_Sum", "Peak_mins_Sum", "OffPeak_calls_Sum", "OffPeak_mins_Sum", "International_mins_Sum", "Nat_call_cost_Sum", "National_calls", "National_mins", "All_calls_mins", "Mins_charge", "call_cost_per_min", "actual.call.cost", "Total_call_cost", "Total_Cost", "average_cost_min")
 #names[12] <- "actual.call.cost"
 submodel <- telco %>% select(all_of(names))
 ```
 
-The interesting variables from Vivian's model are:
-
-
 ## Groups comparison
+
+### General
+```{r}
+ggplot(data = telco, aes(x = group, fill = group)) + geom_bar() + ggsave("figures/barplot_groups.png")
+```
+
 
 ### Histograms
 
 ```{r}
 hist_col <- function (data, column) {
+    if(class(column) == "factor"){
+      stop("Factor")
+    }
     ggplot(data = data, aes_string(x = column, color = data$group)) +
     geom_freqpoly(binwidth = 30) + xlab(column) +
-    ggsave(paste("figures/hist/hist_", column, ".png"))
+    ggsave(gsub(" ", "", paste("figures/hist/hist_", column, ".png")))
 }
 ```
 
 ```{r}
-histograms <- lapply(colnames(telco), hist_col, data = telco)
+#histograms <- lapply(colnames(telco), hist_col, data = telco)
 
-histograms
+#histograms
 ```
 
 
@@ -133,7 +160,7 @@ histograms
 box_col <- function (data, column) {
     ggplot(data = data, aes_string(x = column, y = data$group)) +
     geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups") +
-    ggsave(paste("figures/boxplots/bxplt_", column, ".png"))
+    ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_", column, ".png")))
 }
 ```
 
@@ -145,50 +172,537 @@ boxplots
 
 ## Groupwise EDA
 
+Perform a small EDA for each group to see if we can extract some obvious features.
+
+Let's recall the overall summary:
+```{r}
+# Color per group
+gp_cols <- c("#F8766D", "#B79F00", "#00BA38", "#00BFC4", "#619CFF", "#F564E3")
+```
+
+```{r}
+# Compare the median of the subgroup
+# wrt to base
+gen_compare_med <- function(summ, base){
+  med1 <- summ[[3]]
+  med2 <- base[[3]]
+  base_1qr <- base[[2]]
+  base_3qr <- base[[5]]
+
+  #print(paste("med1", med1))
+  #print(paste("med2", med2))
+  
+  if(med1 > base_3qr){
+    print("Bigger than 3rd base quartile")
+  }
+  else if(med1 >= med2){
+    print("Bigger than base median")
+  }
+  else if(med1 <= med2){
+    print("Smaller than base median")
+  }
+  else if(med1 < base_1qr){
+    print("Smaller than 1st base quartile")
+  }
+}
+```
+
+```{r}
+# Dynamically create 2 boxplots to compare
+gen_compare_plot <- function(subgroup, col){
+  group_nb <- subgroup$group[1]
+  ymin <- min(telco[, col]) - .1 * min(telco[, col])
+  ymax <- 1.1 * max(telco[, col])
+
+  # Compare the medians
+  gen_compare_med(summary(subgroup[, col]), summary(telco[, col]))
+  
+  b1 <- ggplot(data=subgroup, aes_string(y = subgroup[, col], x=subgroup$group, fill=subgroup$group)) + ylim(c(ymin, ymax)) + geom_boxplot(width=0.4)
+  
+  b2 <- ggplot(data=telco, aes_string(y = telco[, col], x = group_nb)) + ylim(c(ymin, ymax)) + geom_boxplot(width=0.4)
+  
+  grid.arrange(b1, b2, ncol=2, top=paste("group", group_nb, col))
+  g <- arrangeGrob(b1, b2, ncol=2, top=paste("group", group_nb, col))
+  ggsave(gsub(" ", "", paste("figures/boxplots/compare/", group_nb, "_", col, ".png")), g, width=10, height=6.3, units="in")
+}
+
+```
+
+
 ### 1.
 
+For each variable, check the boxplot (`figures/boxplots`). Let's focus on the model variables.
 
-
-
-
-
-
-## Old
-EDA V1
-### Basic customer info
+* Peak_calls_Sum: 
 ```{r}
-summary(telco[, 1:2])
-boxplot(telco[, 1:2])
-
-ggplot(data=telco) + 
-    geom_histogram(mapping = aes(x = Age, color=group), binwidth = 1) +
-    ggsave("figures/Age_hist.png")
-
-ggplot(data=telco) + 
-    geom_histogram(mapping = aes(x = L_O_S), binwidth = .8) +
-    ggsave("figures/L_O_S_hist.png")
-
-#The outlier
-telco[which(telco$Age==82),]
+gen_compare_plot(sub1, "Peak_calls_Sum")
 ```
 
-Just one outlier for `Age`. 
+* Peak_mins_Sum: 
+```{r}
+gen_compare_plot(sub1, "Peak_mins_Sum")
+```
 
-```{r, echo=FALSE}
-telco_cor <- telco %>%
-    correlate() %>%
-    rearrange(method = "MDS", absolute = FALSE) %>%
-    shave() 
-telco_cor
+* OffPeak_calls_Sum: 
+```{r}
+gen_compare_plot(sub1, "OffPeak_calls_Sum")
+```
 
-telco_cor_plot <- telco_cor %>%
-    rplot(shape = 19, colors = c("red", "green")) +
-    theme(axis.text.x = element_text(angle = 90))  +
-  ggsave("figures/corrplot.png")
-telco_cor_plot
+* OffPeak_mins_Sum: 
+```{r}
+gen_compare_plot(sub1, "OffPeak_mins_Sum")
+```
+
+* International_mins_Sum: 
+```{r}
+gen_compare_plot(sub1, "International_mins_Sum")
+```
+
+* Nat_call_cost_Sum: 
+```{r}
+gen_compare_plot(sub1, "Nat_call_cost_Sum")
+```
+
+A lot higher than average. (High change of it being significantly bigger)
+
+* National_calls: 
+```{r}
+gen_compare_plot(sub1, "National_calls")
+```
+
+* National_mins: 
+```{r}
+gen_compare_plot(sub1, "National_mins")
+```
+
+* All_calls_mins: 
+```{r}
+gen_compare_plot(sub1, "All_calls_mins")
+```
+
+* Mins_charge: 
+```{r}
+gen_compare_plot(sub1, "Mins_charge")
+```
+Negative values for the whole dataset.
+
+* call_cost_per_min: 
+```{r}
+gen_compare_plot(sub1, "call_cost_per_min")
+```
+
+Higher than average.
+
+* actual.call.cost: 
+```{r}
+gen_compare_plot(sub1, "actual.call.cost")
+```
+
+Higher than average.
+
+* Total_call_cost: 
+```{r}
+gen_compare_plot(sub1, "Total_call_cost")
+```
+
+* Total_Cost: 
+```{r}
+gen_compare_plot(sub1, "Total_Cost")
+```
+
+* average_cost_min: 
+```{r}
+gen_compare_plot(sub1, "average_cost_min")
 ```
 
 
+### 2.
+
+* Peak_calls_Sum: 
+```{r}
+gen_compare_plot(sub2, "Peak_calls_Sum")
+```
+
+* Peak_mins_Sum: 
+```{r}
+gen_compare_plot(sub2, "Peak_mins_Sum")
+```
+
+* OffPeak_calls_Sum: 
+```{r}
+gen_compare_plot(sub2, "OffPeak_calls_Sum")
+```
+
+* OffPeak_mins_Sum: 
+```{r}
+gen_compare_plot(sub2, "OffPeak_mins_Sum")
+```
+
+* International_mins_Sum: 
+```{r}
+gen_compare_plot(sub2, "International_mins_Sum")
+```
+
+* Nat_call_cost_Sum: 
+```{r}
+gen_compare_plot(sub2, "Nat_call_cost_Sum")
+```
+
+* National_calls: 
+```{r}
+gen_compare_plot(sub2, "National_calls")
+```
+
+* National_mins: 
+```{r}
+gen_compare_plot(sub2, "National_mins")
+```
+
+* All_calls_mins: 
+```{r}
+gen_compare_plot(sub2, "All_calls_mins")
+```
+
+* Mins_charge: 
+```{r}
+gen_compare_plot(sub2, "Mins_charge")
+```
+
+* call_cost_per_min: 
+```{r}
+gen_compare_plot(sub2, "call_cost_per_min")
+```
+
+* actual.call.cost: 
+```{r}
+gen_compare_plot(sub2, "actual.call.cost")
+```
+
+* Total_call_cost: 
+```{r}
+gen_compare_plot(sub2, "Total_call_cost")
+```
+
+* Total_Cost: 
+```{r}
+gen_compare_plot(sub2, "Total_Cost")
+```
+
+* average_cost_min: 
+```{r}
+gen_compare_plot(sub2, "average_cost_min")
+```
+
+## 3.
+
+* Peak_calls_Sum: 
+```{r}
+gen_compare_plot(sub3, "Peak_calls_Sum")
+```
+
+* Peak_mins_Sum: 
+```{r}
+gen_compare_plot(sub3, "Peak_mins_Sum")
+```
+
+* OffPeak_calls_Sum: 
+```{r}
+gen_compare_plot(sub3, "OffPeak_calls_Sum")
+```
+
+* OffPeak_mins_Sum: 
+```{r}
+gen_compare_plot(sub3, "OffPeak_mins_Sum")
+```
+
+* International_mins_Sum: 
+```{r}
+gen_compare_plot(sub3, "International_mins_Sum")
+```
+
+* Nat_call_cost_Sum: 
+```{r}
+gen_compare_plot(sub3, "Nat_call_cost_Sum")
+```
+
+* National_calls: 
+```{r}
+gen_compare_plot(sub3, "National_calls")
+```
+
+* National_mins: 
+```{r}
+gen_compare_plot(sub3, "National_mins")
+```
+
+* All_calls_mins: 
+```{r}
+gen_compare_plot(sub3, "All_calls_mins")
+```
+
+* Mins_charge: 
+```{r}
+gen_compare_plot(sub3, "Mins_charge")
+```
+
+* call_cost_per_min: 
+```{r}
+gen_compare_plot(sub3, "call_cost_per_min")
+```
+
+* actual.call.cost: 
+```{r}
+gen_compare_plot(sub3, "actual.call.cost")
+```
+
+* Total_call_cost: 
+```{r}
+gen_compare_plot(sub3, "Total_call_cost")
+```
+
+* Total_Cost: 
+```{r}
+gen_compare_plot(sub3, "Total_Cost")
+```
+
+* average_cost_min: 
+```{r}
+gen_compare_plot(sub3, "average_cost_min")
+```
+
+## 4.
+
+* Peak_calls_Sum: 
+```{r}
+gen_compare_plot(sub4, "Peak_calls_Sum")
+```
+
+* Peak_mins_Sum: 
+```{r}
+gen_compare_plot(sub4, "Peak_mins_Sum")
+```
+
+* OffPeak_calls_Sum: 
+```{r}
+gen_compare_plot(sub4, "OffPeak_calls_Sum")
+```
+
+* OffPeak_mins_Sum: 
+```{r}
+gen_compare_plot(sub4, "OffPeak_mins_Sum")
+```
+
+* International_mins_Sum: 
+```{r}
+gen_compare_plot(sub4, "International_mins_Sum")
+```
+
+* Nat_call_cost_Sum: 
+```{r}
+gen_compare_plot(sub4, "Nat_call_cost_Sum")
+```
+
+* National_calls: 
+```{r}
+gen_compare_plot(sub4, "National_calls")
+```
+
+* National_mins: 
+```{r}
+gen_compare_plot(sub4, "National_mins")
+```
+
+* All_calls_mins: 
+```{r}
+gen_compare_plot(sub4, "All_calls_mins")
+```
+
+* Mins_charge: 
+```{r}
+gen_compare_plot(sub4, "Mins_charge")
+```
+
+* call_cost_per_min: 
+```{r}
+gen_compare_plot(sub4, "call_cost_per_min")
+```
+
+* actual.call.cost: 
+```{r}
+gen_compare_plot(sub4, "actual.call.cost")
+```
+
+* Total_call_cost: 
+```{r}
+gen_compare_plot(sub4, "Total_call_cost")
+```
+
+* Total_Cost: 
+```{r}
+gen_compare_plot(sub4, "Total_Cost")
+```
+
+* average_cost_min: 
+```{r}
+gen_compare_plot(sub4, "average_cost_min")
+```
+
+## 5.
+
+* Peak_calls_Sum: 
+```{r}
+gen_compare_plot(sub5, "Peak_calls_Sum")
+```
+
+* Peak_mins_Sum: 
+```{r}
+gen_compare_plot(sub5, "Peak_mins_Sum")
+```
+
+* OffPeak_calls_Sum: 
+```{r}
+gen_compare_plot(sub5, "OffPeak_calls_Sum")
+```
+
+* OffPeak_mins_Sum: 
+```{r}
+gen_compare_plot(sub5, "OffPeak_mins_Sum")
+```
+
+* International_mins_Sum: 
+```{r}
+gen_compare_plot(sub5, "International_mins_Sum")
+```
+
+* Nat_call_cost_Sum: 
+```{r}
+gen_compare_plot(sub5, "Nat_call_cost_Sum")
+```
+
+* National_calls: 
+```{r}
+gen_compare_plot(sub5, "National_calls")
+```
+
+* National_mins: 
+```{r}
+gen_compare_plot(sub5, "National_mins")
+```
+
+* All_calls_mins: 
+```{r}
+gen_compare_plot(sub5, "All_calls_mins")
+```
+
+* Mins_charge: 
+```{r}
+gen_compare_plot(sub5, "Mins_charge")
+```
+
+* call_cost_per_min: 
+```{r}
+gen_compare_plot(sub5, "call_cost_per_min")
+```
+
+* actual.call.cost: 
+```{r}
+gen_compare_plot(sub5, "actual.call.cost")
+```
+
+* Total_call_cost: 
+```{r}
+gen_compare_plot(sub5, "Total_call_cost")
+```
+
+* Total_Cost: 
+```{r}
+gen_compare_plot(sub5, "Total_Cost")
+```
+
+* average_cost_min: 
+```{r}
+gen_compare_plot(sub5, "average_cost_min")
+```
 
 
+## 6.
+
+* Peak_calls_Sum: 
+```{r}
+gen_compare_plot(sub6, "Peak_calls_Sum")
+```
+
+* Peak_mins_Sum: 
+```{r}
+gen_compare_plot(sub6, "Peak_mins_Sum")
+```
+
+* OffPeak_calls_Sum: 
+```{r}
+gen_compare_plot(sub6, "OffPeak_calls_Sum")
+```
+
+* OffPeak_mins_Sum: 
+```{r}
+gen_compare_plot(sub6, "OffPeak_mins_Sum")
+```
+
+* International_mins_Sum: 
+```{r}
+gen_compare_plot(sub6, "International_mins_Sum")
+```
+
+* Nat_call_cost_Sum: 
+```{r}
+gen_compare_plot(sub6, "Nat_call_cost_Sum")
+```
+
+* National_calls: 
+```{r}
+gen_compare_plot(sub6, "National_calls")
+```
+
+* National_mins: 
+```{r}
+gen_compare_plot(sub6, "National_mins")
+```
+
+* All_calls_mins: 
+```{r}
+gen_compare_plot(sub6, "All_calls_mins")
+```
+
+* Mins_charge: 
+```{r}
+gen_compare_plot(sub6, "Mins_charge")
+```
+
+* call_cost_per_min: 
+```{r}
+gen_compare_plot(sub6, "call_cost_per_min")
+```
+
+* actual.call.cost: 
+```{r}
+gen_compare_plot(sub6, "actual.call.cost")
+```
+
+* Total_call_cost: 
+```{r}
+gen_compare_plot(sub6, "Total_call_cost")
+```
+
+* Total_Cost: 
+```{r}
+gen_compare_plot(sub6, "Total_Cost")
+```
+
+* average_cost_min: 
+```{r}
+gen_compare_plot(sub6, "average_cost_min")
+```
+
+```{r}
+
+```
 
