@@ -201,10 +201,12 @@ gen_compare_med <- function(summ, base){
     print("Bigger than base median")
   }
   else if(med1 <= med2){
-    print("Smaller than base median")
-  }
-  else if(med1 < base_1qr){
-    print("Smaller than 1st base quartile")
+    if(med1 < base_1qr){
+      print("Smaller than 1st base quartile")
+    }
+    else{
+      print("Smaller than base median") 
+    }
   }
 }
 ```
@@ -230,478 +232,59 @@ gen_compare_plot <- function(subgroup, col){
 
 ```
 
+```{r}
+cols_submodel <- names[-1]
+```
 
 ### 1.
 
 For each variable, check the boxplot (`figures/boxplots`). Let's focus on the model variables.
 
-* Peak_calls_Sum: 
 ```{r}
-gen_compare_plot(sub1, "Peak_calls_Sum")
-```
-
-* Peak_mins_Sum: 
-```{r}
-gen_compare_plot(sub1, "Peak_mins_Sum")
-```
-
-* OffPeak_calls_Sum: 
-```{r}
-gen_compare_plot(sub1, "OffPeak_calls_Sum")
-```
-
-* OffPeak_mins_Sum: 
-```{r}
-gen_compare_plot(sub1, "OffPeak_mins_Sum")
-```
-
-* International_mins_Sum: 
-```{r}
-gen_compare_plot(sub1, "International_mins_Sum")
-```
-
-* Nat_call_cost_Sum: 
-```{r}
-gen_compare_plot(sub1, "Nat_call_cost_Sum")
-```
-
-A lot higher than average. (High change of it being significantly bigger)
-
-* National_calls: 
-```{r}
-gen_compare_plot(sub1, "National_calls")
-```
-
-* National_mins: 
-```{r}
-gen_compare_plot(sub1, "National_mins")
-```
-
-* All_calls_mins: 
-```{r}
-gen_compare_plot(sub1, "All_calls_mins")
-```
-
-* Mins_charge: 
-```{r}
-gen_compare_plot(sub1, "Mins_charge")
-```
-Negative values for the whole dataset.
-
-* call_cost_per_min: 
-```{r}
-gen_compare_plot(sub1, "call_cost_per_min")
-```
-
-Higher than average.
-
-* actual.call.cost: 
-```{r}
-gen_compare_plot(sub1, "actual.call.cost")
-```
-
-Higher than average.
-
-* Total_call_cost: 
-```{r}
-gen_compare_plot(sub1, "Total_call_cost")
-```
-
-* Total_Cost: 
-```{r}
-gen_compare_plot(sub1, "Total_Cost")
-```
-
-* average_cost_min: 
-```{r}
-gen_compare_plot(sub1, "average_cost_min")
+for(col in cols_submodel){
+  gen_compare_plot(sub1, col)
+}
 ```
 
 
 ### 2.
 
-* Peak_calls_Sum: 
 ```{r}
-gen_compare_plot(sub2, "Peak_calls_Sum")
-```
-
-* Peak_mins_Sum: 
-```{r}
-gen_compare_plot(sub2, "Peak_mins_Sum")
-```
-
-* OffPeak_calls_Sum: 
-```{r}
-gen_compare_plot(sub2, "OffPeak_calls_Sum")
-```
-
-* OffPeak_mins_Sum: 
-```{r}
-gen_compare_plot(sub2, "OffPeak_mins_Sum")
-```
-
-* International_mins_Sum: 
-```{r}
-gen_compare_plot(sub2, "International_mins_Sum")
-```
-
-* Nat_call_cost_Sum: 
-```{r}
-gen_compare_plot(sub2, "Nat_call_cost_Sum")
-```
-
-* National_calls: 
-```{r}
-gen_compare_plot(sub2, "National_calls")
-```
-
-* National_mins: 
-```{r}
-gen_compare_plot(sub2, "National_mins")
-```
-
-* All_calls_mins: 
-```{r}
-gen_compare_plot(sub2, "All_calls_mins")
-```
-
-* Mins_charge: 
-```{r}
-gen_compare_plot(sub2, "Mins_charge")
-```
-
-* call_cost_per_min: 
-```{r}
-gen_compare_plot(sub2, "call_cost_per_min")
-```
-
-* actual.call.cost: 
-```{r}
-gen_compare_plot(sub2, "actual.call.cost")
-```
-
-* Total_call_cost: 
-```{r}
-gen_compare_plot(sub2, "Total_call_cost")
-```
-
-* Total_Cost: 
-```{r}
-gen_compare_plot(sub2, "Total_Cost")
-```
-
-* average_cost_min: 
-```{r}
-gen_compare_plot(sub2, "average_cost_min")
+for(col in cols_submodel){
+  gen_compare_plot(sub2, col)
+}
 ```
 
 ## 3.
 
-* Peak_calls_Sum: 
 ```{r}
-gen_compare_plot(sub3, "Peak_calls_Sum")
-```
-
-* Peak_mins_Sum: 
-```{r}
-gen_compare_plot(sub3, "Peak_mins_Sum")
-```
-
-* OffPeak_calls_Sum: 
-```{r}
-gen_compare_plot(sub3, "OffPeak_calls_Sum")
-```
-
-* OffPeak_mins_Sum: 
-```{r}
-gen_compare_plot(sub3, "OffPeak_mins_Sum")
-```
-
-* International_mins_Sum: 
-```{r}
-gen_compare_plot(sub3, "International_mins_Sum")
-```
-
-* Nat_call_cost_Sum: 
-```{r}
-gen_compare_plot(sub3, "Nat_call_cost_Sum")
-```
-
-* National_calls: 
-```{r}
-gen_compare_plot(sub3, "National_calls")
-```
-
-* National_mins: 
-```{r}
-gen_compare_plot(sub3, "National_mins")
-```
-
-* All_calls_mins: 
-```{r}
-gen_compare_plot(sub3, "All_calls_mins")
-```
-
-* Mins_charge: 
-```{r}
-gen_compare_plot(sub3, "Mins_charge")
-```
-
-* call_cost_per_min: 
-```{r}
-gen_compare_plot(sub3, "call_cost_per_min")
-```
-
-* actual.call.cost: 
-```{r}
-gen_compare_plot(sub3, "actual.call.cost")
-```
-
-* Total_call_cost: 
-```{r}
-gen_compare_plot(sub3, "Total_call_cost")
-```
-
-* Total_Cost: 
-```{r}
-gen_compare_plot(sub3, "Total_Cost")
-```
-
-* average_cost_min: 
-```{r}
-gen_compare_plot(sub3, "average_cost_min")
+for(col in cols_submodel){
+  gen_compare_plot(sub3, col)
+}
 ```
 
 ## 4.
 
-* Peak_calls_Sum: 
 ```{r}
-gen_compare_plot(sub4, "Peak_calls_Sum")
-```
-
-* Peak_mins_Sum: 
-```{r}
-gen_compare_plot(sub4, "Peak_mins_Sum")
-```
-
-* OffPeak_calls_Sum: 
-```{r}
-gen_compare_plot(sub4, "OffPeak_calls_Sum")
-```
-
-* OffPeak_mins_Sum: 
-```{r}
-gen_compare_plot(sub4, "OffPeak_mins_Sum")
-```
-
-* International_mins_Sum: 
-```{r}
-gen_compare_plot(sub4, "International_mins_Sum")
-```
-
-* Nat_call_cost_Sum: 
-```{r}
-gen_compare_plot(sub4, "Nat_call_cost_Sum")
-```
-
-* National_calls: 
-```{r}
-gen_compare_plot(sub4, "National_calls")
-```
-
-* National_mins: 
-```{r}
-gen_compare_plot(sub4, "National_mins")
-```
-
-* All_calls_mins: 
-```{r}
-gen_compare_plot(sub4, "All_calls_mins")
-```
-
-* Mins_charge: 
-```{r}
-gen_compare_plot(sub4, "Mins_charge")
-```
-
-* call_cost_per_min: 
-```{r}
-gen_compare_plot(sub4, "call_cost_per_min")
-```
-
-* actual.call.cost: 
-```{r}
-gen_compare_plot(sub4, "actual.call.cost")
-```
-
-* Total_call_cost: 
-```{r}
-gen_compare_plot(sub4, "Total_call_cost")
-```
-
-* Total_Cost: 
-```{r}
-gen_compare_plot(sub4, "Total_Cost")
-```
-
-* average_cost_min: 
-```{r}
-gen_compare_plot(sub4, "average_cost_min")
+for(col in cols_submodel){
+  gen_compare_plot(sub4, col)
+}
 ```
 
 ## 5.
 
-* Peak_calls_Sum: 
 ```{r}
-gen_compare_plot(sub5, "Peak_calls_Sum")
+for(col in cols_submodel){
+  gen_compare_plot(sub5, col)
+}
 ```
-
-* Peak_mins_Sum: 
-```{r}
-gen_compare_plot(sub5, "Peak_mins_Sum")
-```
-
-* OffPeak_calls_Sum: 
-```{r}
-gen_compare_plot(sub5, "OffPeak_calls_Sum")
-```
-
-* OffPeak_mins_Sum: 
-```{r}
-gen_compare_plot(sub5, "OffPeak_mins_Sum")
-```
-
-* International_mins_Sum: 
-```{r}
-gen_compare_plot(sub5, "International_mins_Sum")
-```
-
-* Nat_call_cost_Sum: 
-```{r}
-gen_compare_plot(sub5, "Nat_call_cost_Sum")
-```
-
-* National_calls: 
-```{r}
-gen_compare_plot(sub5, "National_calls")
-```
-
-* National_mins: 
-```{r}
-gen_compare_plot(sub5, "National_mins")
-```
-
-* All_calls_mins: 
-```{r}
-gen_compare_plot(sub5, "All_calls_mins")
-```
-
-* Mins_charge: 
-```{r}
-gen_compare_plot(sub5, "Mins_charge")
-```
-
-* call_cost_per_min: 
-```{r}
-gen_compare_plot(sub5, "call_cost_per_min")
-```
-
-* actual.call.cost: 
-```{r}
-gen_compare_plot(sub5, "actual.call.cost")
-```
-
-* Total_call_cost: 
-```{r}
-gen_compare_plot(sub5, "Total_call_cost")
-```
-
-* Total_Cost: 
-```{r}
-gen_compare_plot(sub5, "Total_Cost")
-```
-
-* average_cost_min: 
-```{r}
-gen_compare_plot(sub5, "average_cost_min")
-```
-
 
 ## 6.
 
-* Peak_calls_Sum: 
 ```{r}
-gen_compare_plot(sub6, "Peak_calls_Sum")
-```
-
-* Peak_mins_Sum: 
-```{r}
-gen_compare_plot(sub6, "Peak_mins_Sum")
-```
-
-* OffPeak_calls_Sum: 
-```{r}
-gen_compare_plot(sub6, "OffPeak_calls_Sum")
-```
-
-* OffPeak_mins_Sum: 
-```{r}
-gen_compare_plot(sub6, "OffPeak_mins_Sum")
-```
-
-* International_mins_Sum: 
-```{r}
-gen_compare_plot(sub6, "International_mins_Sum")
-```
-
-* Nat_call_cost_Sum: 
-```{r}
-gen_compare_plot(sub6, "Nat_call_cost_Sum")
-```
-
-* National_calls: 
-```{r}
-gen_compare_plot(sub6, "National_calls")
-```
-
-* National_mins: 
-```{r}
-gen_compare_plot(sub6, "National_mins")
-```
-
-* All_calls_mins: 
-```{r}
-gen_compare_plot(sub6, "All_calls_mins")
-```
-
-* Mins_charge: 
-```{r}
-gen_compare_plot(sub6, "Mins_charge")
-```
-
-* call_cost_per_min: 
-```{r}
-gen_compare_plot(sub6, "call_cost_per_min")
-```
-
-* actual.call.cost: 
-```{r}
-gen_compare_plot(sub6, "actual.call.cost")
-```
-
-* Total_call_cost: 
-```{r}
-gen_compare_plot(sub6, "Total_call_cost")
-```
-
-* Total_Cost: 
-```{r}
-gen_compare_plot(sub6, "Total_Cost")
-```
-
-* average_cost_min: 
-```{r}
-gen_compare_plot(sub6, "average_cost_min")
+for(col in cols_submodel){
+  gen_compare_plot(sub6, col)
+}
 ```
 
 ```{r}
