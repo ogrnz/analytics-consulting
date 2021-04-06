@@ -107,7 +107,7 @@ dev.off()
 ```{r, fig.width=14}
 
 datos <- telco_data
-n_clusters <- 6
+n_clusters <- 4
 
 #Normalize 
 data_norm <- preProcess(datos, method="range")
@@ -167,6 +167,13 @@ clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
 
 ```
 
+```{r}
+# Add col group to current dataframe
+head(telco_data)
+telco_data$group <- clusters_hc1
+write.csv(telco_data, "4_groups_telco.csv", row.names = FALSE)
+# Export as csv
+```
 
 
 

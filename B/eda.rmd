@@ -31,7 +31,7 @@ Updated EDA with Vivian's model
 #head(telco) #yikes 25 cols
 #write.csv(telco, file="grouped_telco.csv")
 
-telco <- read.csv("grouped_telco.csv")
+telco <- read.csv("4_groups_telco.csv")
 
 telco$group <- as.factor(telco$group)
 str(telco)
