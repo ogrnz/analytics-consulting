@@ -23,7 +23,6 @@ library(dplyr)
 library(gridExtra)
 ```
 
-
 Updated EDA with Vivian's model
 ```{r}
 # Add the new column (clusters_hc1 already in env)
@@ -54,10 +53,6 @@ All variables are numeric.
 
 ```{r, echo=FALSE, include=FALSE}
 telco[!complete.cases(telco),]
-
-#Drop first index column
-telco <- subset(telco, select=-c(X))
-str(telco)
 ```
 We have no NAs.
 
@@ -68,39 +63,29 @@ We have no NAs.
 #pairs_tot
 ```
 
-Can't see anything!
-
 ```{r}
 #pairs1_2 <- ggpairs(telco[, c(1:2, 25)], aes(color = group, alpha = 0.4))
 #pairs1_2
+#ggsave(gsub(" ", "", paste("figures/pairs/gp_pairs1_2.png")), width=10, height=6, units="in")
 ```
 
-`Age` is not so special. No correlation. `L_O_S` is bimodal, 2 groups ?
 
 ```{r}
 #It's quite slow..
 #pairs3_19 <- ggpairs(telco[, c(3:19, 25)], aes(color = group, alpha = 0.4))
 #pairs3_19
+#ggsave(gsub(" ", "", paste("figures/pairs/gp_pairs3_19.png")), width=30, height=18, units="in")
 ```
 
 `Nat_call_cost_Sum`, `National_mins`, `All_calls_mins` -> multinomial distrib?
 
-`Peak_mins_Sum` together with `Nat_call_cost_Sum` -> 2 clusters
-
 ```{r}
 #pairs20_24 <- ggpairs(telco[, 20:25], aes(color = group, alpha = 0.4))
 #pairs20_24
+#ggsave(gsub(" ", "", paste("figures/pairs/gp_pairs20_24.png")), width=13, height=9, units="in")
 ```
 
-All variables multinomial, tariffs grouping?
-
-Let's explore a subset of the interesting variables:
-
-```{r}
-subset <- telco[, c(1:2, 5, 11, 16, 18, 20:25)]
-#pairs_sub <- ggpairs(subset, aes(color = group, alpha = 0.4))
-#pairs_sub
-```
+--> No more subset
 
 ### Misc
 
@@ -116,17 +101,23 @@ sub1 <- telco[which(telco$group==1),]
 sub2 <- telco[which(telco$group==2),]
 sub3 <- telco[which(telco$group==3),]
 sub4 <- telco[which(telco$group==4),]
-sub5 <- telco[which(telco$group==5),]
-sub6 <- telco[which(telco$group==6),]
+
+
+## No more submodel
 
 # From the model (only the interesting variables)
 #names <- as.vector(colnames(data_norm))
-names <- c("group", "Peak_calls_Sum", "Peak_mins_Sum", "OffPeak_calls_Sum", "OffPeak_mins_Sum", "International_mins_Sum", "Nat_call_cost_Sum", "National_calls", "National_mins", "All_calls_mins", "Mins_charge", "call_cost_per_min", "actual.call.cost", "Total_call_cost", "Total_Cost", "average_cost_min")
+#names <- c("group", "Peak_calls_Sum", "Peak_mins_Sum", "OffPeak_calls_Sum", "OffPeak_mins_Sum", "International_mins_Sum", "Nat_call_cost_Sum", "National_calls", "National_mins", "All_calls_mins", "Mins_charge", "call_cost_per_min", "actual.call.cost", "Total_call_cost", "Total_Cost", "average_cost_min")
 #names[12] <- "actual.call.cost"
-submodel <- telco %>% select(all_of(names))
+#submodel <- telco %>% select(all_of(names))
 ```
 
 ## Groups comparison
+
+```{r}
+# delete "group" col to avoid errors 
+cols_submodel <- colnames(telco)[-25]
+```
 
 ### General
 ```{r}
@@ -150,9 +141,9 @@ hist_col <- function (data, column) {
 ```
 
 ```{r}
-#histograms <- lapply(colnames(telco), hist_col, data = telco)
+histograms <- lapply(cols_submodel, hist_col, data = telco)
 
-#histograms
+histograms
 ```
 
 
@@ -167,7 +158,7 @@ box_col <- function (data, column) {
 ```
 
 ```{r}
-boxplots <- lapply(colnames(telco), box_col, data = telco)
+boxplots <- lapply(cols_submodel, box_col, data = telco)
 
 boxplots
 ```
@@ -179,7 +170,7 @@ Perform a small EDA for each group to see if we can extract some obvious feature
 Let's recall the overall summary:
 ```{r}
 # Color per group
-gp_cols <- c("#F8766D", "#B79F00", "#00BA38", "#00BFC4", "#619CFF", "#F564E3")
+gp_cols <- c("#F8766D", "#B79F00", "#00BA38", "#00BFC4")
 ```
 
 ```{r}
@@ -213,13 +204,10 @@ gen_compare_med <- function(summ, base){
 
 ```{r}
 # Dynamically create 2 boxplots to compare
-gen_compare_plot <- function(subgroup, col){
+gen_compare_plot <- function(subgroup, col, summary=FALSE){
   group_nb <- subgroup$group[1]
   ymin <- min(telco[, col]) - .1 * min(telco[, col])
   ymax <- 1.1 * max(telco[, col])
-
-  # Compare the medians
-  gen_compare_med(summary(subgroup[, col]), summary(telco[, col]))
   
   b1 <- ggplot(data=subgroup, aes_string(y = subgroup[, col], x=subgroup$group, fill=subgroup$group)) + ylim(c(ymin, ymax)) + geom_boxplot(width=0.4)
   
@@ -228,12 +216,13 @@ gen_compare_plot <- function(subgroup, col){
   grid.arrange(b1, b2, ncol=2, top=paste("group", group_nb, col))
   g <- arrangeGrob(b1, b2, ncol=2, top=paste("group", group_nb, col))
   ggsave(gsub(" ", "", paste("figures/boxplots/compare/", group_nb, "_", col, ".png")), g, width=10, height=6.3, units="in")
+  
+  # Compare the medians
+  med_compar <- gen_compare_med(summary(subgroup[, col]), summary(telco[, col]))
+  
+  return(med_compar)
 }
 
-```
-
-```{r}
-cols_submodel <- names[-1]
 ```
 
 ### 1.
@@ -241,50 +230,50 @@ cols_submodel <- names[-1]
 For each variable, check the boxplot (`figures/boxplots`). Let's focus on the model variables.
 
 ```{r}
-for(col in cols_submodel){
-  gen_compare_plot(sub1, col)
+summ <- c()
+
+for(i in seq_along(cols_submodel)){
+  summ[i] <- gen_compare_plot(sub1, cols_submodel[i])
 }
+
+print(length(summ))
 ```
 
 
 ### 2.
 
 ```{r}
-for(col in cols_submodel){
-  gen_compare_plot(sub2, col)
+summ <- c()
+
+for(i in seq_along(cols_submodel)){
+  summ[i] <- gen_compare_plot(sub2, cols_submodel[i])
 }
+
+print(length(summ))
 ```
 
 ## 3.
 
 ```{r}
-for(col in cols_submodel){
-  gen_compare_plot(sub3, col)
+summ <- c()
+
+for(i in seq_along(cols_submodel)){
+  summ[i] <- gen_compare_plot(sub3, cols_submodel[i])
 }
+
+print(length(summ))
 ```
 
 ## 4.
 
 ```{r}
-for(col in cols_submodel){
-  gen_compare_plot(sub4, col)
+summ <- c()
+
+for(i in seq_along(cols_submodel)){
+  summ[i] <- gen_compare_plot(sub4, cols_submodel[i])
 }
-```
 
-## 5.
-
-```{r}
-for(col in cols_submodel){
-  gen_compare_plot(sub5, col)
-}
-```
-
-## 6.
-
-```{r}
-for(col in cols_submodel){
-  gen_compare_plot(sub6, col)
-}
+print(length(summ))
 ```
 
 ```{r}
