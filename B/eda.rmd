@@ -134,8 +134,10 @@ hist_col <- function (data, column) {
     if(class(column) == "factor"){
       stop("Factor")
     }
-    ggplot(data = data, aes_string(x = column, color = data$group)) +
-    geom_freqpoly(binwidth = 30) + xlab(column) +
+  ggplot(data = data, aes_string(x = column, color = data$group)) +
+      geom_freqpoly(binwidth = 30) +
+      xlab(column) +
+      labs(title=paste0(column)) +
     ggsave(gsub(" ", "", paste("figures/hist/hist_", column, ".png")))
 }
 ```
@@ -152,8 +154,9 @@ histograms
 ```{r}
 box_col <- function (data, column) {
     ggplot(data = data, aes_string(x = column, y = data$group)) +
-    geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups") +
-    ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_", column, ".png")))
+    geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups")  +
+      labs(title=paste0(column)) +
+    ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_", column, ".png")),width = 2,height=2)
 }
 ```
 
