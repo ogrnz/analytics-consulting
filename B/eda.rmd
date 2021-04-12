@@ -80,9 +80,9 @@ We have no NAs.
 `Nat_call_cost_Sum`, `National_mins`, `All_calls_mins` -> multinomial distrib?
 
 ```{r}
-#pairs20_24 <- ggpairs(telco[, 20:25], aes(color = group, alpha = 0.4))
-#pairs20_24
-#ggsave(gsub(" ", "", paste("figures/pairs/gp_pairs20_24.png")), width=13, height=9, units="in")
+# pairs20_24 <- ggpairs(telco[, 20:25], aes(color = group, alpha = 0.4))
+# pairs20_24
+# ggsave(gsub(" ", "", paste("figures/pairs/gp_pairs20_24.png")), width=6.5, height=4.5, units="in")
 ```
 
 --> No more subset

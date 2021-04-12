@@ -93,9 +93,21 @@ png("figures/cluster_plot_6_groups.png",width=350,height=350)
 clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
 dev.off()
 
+clusters_hc1 <- cutree(hc1, k = 5)
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+png("figures/cluster_plot_five_groups.png",width=350,height=350)
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+dev.off()
+
 clusters_hc1 <- cutree(hc1, k = 4)
 clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
 png("figures/cluster_plot_four_groups.png",width=350,height=350)
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+dev.off()
+
+clusters_hc1 <- cutree(hc1, k = 3)
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+png("figures/cluster_plot_three_groups.png",width=350,height=350)
 clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
 dev.off()
 ```
