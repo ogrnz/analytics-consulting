@@ -1,0 +1,497 @@
+---
+title: "Case Study C"
+author: "Hervégil Voegeli"
+date: "13/04/2021"
+output: html_document
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r}
+
+setwd("E:/Universite de Genève/Faculté d'économie/Mon Master en statistique/A1S2/Analytics Consulting/analytics-consulting/C")
+
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+library(tidyverse)
+library(readxl)
+library(ggpubr)
+library(corrr)
+library(GGally)
+library(dplyr)
+library(gridExtra)
+library(reshape2)
+```
+
+
+```{r}
+
+head <- read_excel("Cheadinjury.xls",col_types = "text")
+
+
+attach(head)
+
+str(head)
+
+```
+
+```{r}
+hist_col <- function (data, column) {
+  ggplot(data = data, aes(column)) +
+      geom_histogram(stat="count") +
+      xlab(column) +
+      labs(title=paste0(column)) +
+    ggsave(gsub(" ", "", paste("figures/histograms/hist_", column, ".png")))
+}
+```
+
+```{r}
+head %>%
+  ggplot(aes(x=age.65)) +
+  geom_histogram(stat = "count") +
+  xlab("age.65") +
+  labs(title = "age.65") +
+  ggsave(paste0("figures/histograms/hist_", "age.65", ".png"))
+
+head %>%
+  ggplot(aes(x=amnesia.before)) +
+  geom_histogram(stat = "count") +
+  xlab("amnesia.before") +
+  labs(title = "amnesia.before") +
+  ggsave(paste0("figures/histograms/hist_", "amnesia.before", ".png"))
+
+head %>%
+  ggplot(aes(x=basal.skull.fracture)) +
+  geom_histogram(stat = "count") +
+  xlab("basal.skull.fracture") +
+  labs(title = "basal.skull.fracture") +
+  ggsave(paste0("figures/histograms/hist_", "basal.skull.fracture", ".png"))
+
+
+head %>%
+  ggplot(aes(x=GCS.decrease)) +
+  geom_histogram(stat = "count") +
+  xlab("GCS.decrease") +
+  labs(title = "GCS.decrease") +
+  ggsave(paste0("figures/histograms/hist_", "GCS.decrease", ".png"))
+
+
+head %>%
+  ggplot(aes(x=GCS.13)) +
+  geom_histogram(stat = "count") +
+  xlab("GCS.13") +
+  labs(title = "GCS.13") +
+  ggsave(paste0("figures/histograms/hist_", "GCS.13", ".png"))
+
+
+head %>%
+  ggplot(aes(x=GCS.15.2hours)) +
+  geom_histogram(stat = "count") +
+  xlab("GCS.15.2hours") +
+  labs(title = "GCS.15.2hours") +
+  ggsave(paste0("figures/histograms/hist_", "GCS.15.2hours", ".png"))
+
+
+head %>%
+  ggplot(aes(x=high.risk)) +
+  geom_histogram(stat = "count") +
+  xlab("high.risk") +
+  labs(title = "high.risk") +
+  ggsave(paste0("figures/histograms/hist_", "high.risk", ".png"))
+
+
+head %>%
+  ggplot(aes(x=loss.of.consciousness)) +
+  geom_histogram(stat = "count") +
+  xlab("loss.of.consciousness") +
+  labs(title = "loss.of.consciousness") +
+  ggsave(paste0("figures/histograms/hist_", "loss.of.consciousness", ".png"))
+
+
+head %>%
+  ggplot(aes(x=open.skull.fracture)) +
+  geom_histogram(stat = "count") +
+  xlab("open.skull.fracture") +
+  labs(title = "open.skull.fracture") +
+  ggsave(paste0("figures/histograms/hist_", "open.skull.fracture", ".png"))
+
+
+head %>%
+  ggplot(aes(x=vomiting)) +
+  geom_histogram(stat = "count") +
+  xlab("vomiting") +
+  labs(title = "vomiting") +
+  ggsave(paste0("figures/histograms/hist_", "vomiting", ".png"))
+
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury",
+    ".png"
+  ))
+
+
+
+```
+
+
+
+```{r}
+
+
+```
+
+
+
+
+ Those percentages will be P(brain injury|variable X = {0 ; 1} AND individuals who suffered...)
+
+ Why is that? Because this data was not collected on the population as a whole. We always have this condition individuals who suffered ‘minor’ head injuries) fulfilled.
+ How is that a problem?
+ ->Imagine the following situation:
+ We are asked "what is the impact of eating an additional 100g of meat per day on B12 levels?" (B12 is only acquired through meat)
+ 1) If we measure this only on vegan people, and additional 100g will have a huge impact.
+ 2) If we measure this on people eating too much meat, this will have zero effect.
+
+ Another funny example:
+ Effects of eggs on your health is often controversed: 
+ American studies show that it is bad for health while Asiatic ones show it is great.
+ American studies are conducted on American people (logical) and Asiatic ones on Asiatic people.
+ Not having the same population conducts different results.
+
+ We will see later what impact it will have on our study.
+
+
+```{r}
+percent <- head %>%
+  group_by(age.65) %>%
+  summarise(injury_vs_age = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=age.65,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("age.65") +
+  labs(title = "age.65") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "age.65","_vs_brain.injury",".png"))
+
+percent <- head %>%
+  group_by(amnesia.before) %>%
+  summarise(injury_vs_amnesia = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=amnesia.before,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("amnesia.before") +
+  labs(title = "amnesia.before") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "amnesia.before","_vs_brain.injury", ".png"))
+
+percent <- head %>%
+  group_by(basal.skull.fracture) %>%
+  summarise(injury_vs_basal.skull.fracture = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=basal.skull.fracture,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("basal.skull.fracture") +
+  labs(title = "basal.skull.fracture") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "basal.skull.fracture","_vs_brain.injury", ".png"))
+
+percent <- head %>%
+  group_by(GCS.decrease) %>%
+  summarise(injury_vs_GCS.decrease = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=GCS.decrease,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("GCS.decrease") +
+  labs(title = "GCS.decrease") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "GCS.decrease","_vs_brain.injury", ".png"))
+
+percent <- head %>%
+  group_by(GCS.13) %>%
+  summarise(injury_vs_GCS.13 = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=GCS.13,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("GCS.13") +
+  labs(title = "GCS.13") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "GCS.13","_vs_brain.injury", ".png"))
+
+percent <- head %>%
+  group_by(GCS.15.2hours) %>%
+  summarise(injury_vs_GCS.15.2hours = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=GCS.15.2hours,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("GCS.15.2hours") +
+  labs(title = "GCS.15.2hours") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "GCS.15.2hours","_vs_brain.injury", ".png"))
+
+percent <- head %>%
+  group_by(high.risk) %>%
+  summarise(injury_vs_high.risk = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=high.risk,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("high.risk") +
+  labs(title = "high.risk") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "high.risk","_vs_brain.injury", ".png"))
+
+percent <- head %>%
+  group_by(loss.of.consciousness) %>%
+  summarise(injury_vs_loss.of.consciousness = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=loss.of.consciousness,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("loss.of.consciousness") +
+  labs(title = "loss.of.consciousness") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "loss.of.consciousness","_vs_brain.injury", ".png"))
+
+percent <- head %>%
+  group_by(open.skull.fracture) %>%
+  summarise(injury_vs_open.skull.fracture = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=open.skull.fracture,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("open.skull.fracture") +
+  labs(title = "open.skull.fracture") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "open.skull.fracture","_vs_brain.injury", ".png"))
+
+percent <- head %>%
+  group_by(vomiting) %>%
+  summarise(injury_vs_vomiting = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x=vomiting,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("vomiting") +
+  labs(title = "vomiting") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0("figures/histograms/hist_", "vomiting","_vs_brain.injury", ".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(injury_vs_injury = round(sum(clinically.important.brain.injury == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having injury")) +
+  geom_text(aes(x=2,y=10),label=paste(percent[2,2],"% having injury")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury","_vs_brain.injury",
+    ".png"
+  ))
+
+```
+
+
+
+
+Those percentages will be P(variable X = {0 ; 1} and "individuals who suffered ‘minor’ head injuries" | brain injury)
+
+```{r}
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(age.65_vs_injury = round(sum(age.65 == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=age.65)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having age.65")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having age.65")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","age.65",".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(amnesia.before_vs_injury = round(sum(amnesia.before == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=amnesia.before)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having amnesia.before")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having amnesia.before")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","amnesia.before",".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(basal.skull.fracture_vs_injury = round(sum(basal.skull.fracture == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=basal.skull.fracture)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having basal.skull.fracture")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having basal.skull.fracture")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","basal.skull.fracture",".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(GCS.decrease_vs_injury = round(sum(GCS.decrease == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=GCS.decrease)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having GCS.decrease")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having GCS.decrease")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","GCS.decrease",".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(GCS.13_vs_injury = round(sum(GCS.13 == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=GCS.13)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having GCS.13")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having GCS.13")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","GCS.13",".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(GCS.15.2hours_vs_injury = round(sum(GCS.15.2hours == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=GCS.15.2hours)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having GCS.15.2hours")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having GCS.15.2hours")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","GCS.15.2hours",".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(high.risk_vs_injury = round(sum(high.risk == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=high.risk)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having high.risk")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having high.risk")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","high.risk",".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(loss.of.consciousness_vs_injury = round(sum(loss.of.consciousness == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=loss.of.consciousness)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having loss.of.consciousness")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having loss.of.consciousness")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","loss.of.consciousness",".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(open.skull.fracture_vs_injury = round(sum(open.skull.fracture == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=open.skull.fracture)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having open.skull.fracture")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having open.skull.fracture")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","open.skull.fracture",".png"))
+
+percent <- head %>%
+  group_by(clinically.important.brain.injury) %>%
+  summarise(vomiting_vs_injury = round(sum(vomiting == 1)/n(), 2) * 100)
+
+head %>%
+  ggplot(aes(x = clinically.important.brain.injury,fill=vomiting)) +
+  geom_histogram(stat = "count") +
+  xlab("clinically.important.brain.injury") +
+  labs(title = "clinically.important.brain.injury") +
+  geom_text(aes(x=1,y=10),label=paste(percent[1,2],"% having vomiting")) +
+  geom_text(aes(x=2,y=100),label=paste(percent[2,2],"% having vomiting")) +
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_vs_","vomiting",".png"))
+
+```
+
+
+Now, we know:
+P(injury | X AND "individuals who suffered ‘minor’ head injuries") and P(X AND "individuals who suffered ‘minor’ head injuries" | injury)
+We can deduce:
+P(injury) = P(injury | X AND ...) * P(X) / P(X | injury AND ...)
+
+BUT, we will be more precise if we could have it directly from our tutor.
+
+We are asked:
+P(injury | X) = P(X|injury) * P(injury) / ( P(X|injury) * P(injury) +  P(X|no injury) * P(no injury) )
+Which is the perfect setup for naive Bayes algorithms.
+
+QUESTIONS:
+-What percentage of the population is affected by any acute brain finding revealed on CT?
