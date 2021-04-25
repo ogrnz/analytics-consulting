@@ -153,10 +153,12 @@ histograms
 
 ```{r}
 box_col <- function (data, column) {
-    ggplot(data = data, aes_string(x = column, y = data$group)) +
+  ggplot(data = data, aes_string(x = column, y = data$group)) +
     geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups")  +
-      labs(title=paste0(column)) +
-    ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_", column, ".png")),width = 2,height=2)
+    labs(title = paste0(column)) +
+    ggsave(gsub(" ", "", paste(
+      "figures/boxplots/bxplt_", column, ".png"
+    )), width = 2, height = 2)
 }
 ```
 
@@ -165,6 +167,27 @@ boxplots <- lapply(cols_submodel, box_col, data = telco)
 
 boxplots
 ```
+
+```{r}
+# Specific plots for report
+fig1 = telco %>% select("group",
+                        "All_calls_mins",
+                        "OffPeak_mins_Sum",
+                        "Peak_mins_Sum")
+
+fig1_long <- fig1 %>%
+  gather(key,
+         value,
+         c("All_calls_mins", "OffPeak_mins_Sum", "Peak_mins_Sum"))
+
+ggplot(data = fig1_long, aes(x = value, y = group, fill = group)) +
+  geom_boxplot() + facet_wrap( ~key) + scale_y_discrete(limits=rev)
+  ggsave(gsub(" ", "", paste(
+    "figures/boxplots/bxplt_fig1.png"
+  )), width = 7, height = 3)
+
+```
+
 
 ## Groupwise EDA
 
