@@ -7,7 +7,7 @@ output: html_document
 
 ```{r, results='hide', message=FALSE, warning= FALSE}
 
-library(DMwR)
+#library(DMwR) #Can't install it
 library(factoextra)
 library(reshape2)
 library(ggplot2)
@@ -36,7 +36,7 @@ telco_data <- read_excel("Btelco.xls") #na.omit(read.csv("Cereals.csv", header =
 
 
 1. Data Pre-Processing
-2. Inicial variable selection (PCA)
+2. Initial variable selection (PCA)
 
 ```{r}
 bart_spher(telco_data)
@@ -236,4 +236,3 @@ ggplot(data = plotdata, aes(variable, value, fill = variable), ylab = "mean") +
   scale_fill_viridis_d(begin = 0.2, end = 0.85)+
   geom_point(data = means, col = 'red')
 ```
-
