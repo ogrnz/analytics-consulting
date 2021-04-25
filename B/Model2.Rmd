@@ -1,0 +1,239 @@
+---
+title: "Untitled"
+author: "Vivian Carranza"
+date: "25/4/2021"
+output: html_document
+---
+
+```{r, results='hide', message=FALSE, warning= FALSE}
+
+library(DMwR)
+library(factoextra)
+library(reshape2)
+library(ggplot2)
+library(FNN)
+library(caret)
+library(readxl)
+library(corrplot)
+library(cluster)
+
+
+library(knitr)
+library(olsrr)
+library(corrplot)
+library(nortest)
+library(reghelper)
+library(psych)
+library(QuantPsyc)
+library(REdaS)
+library(tidyr)
+library(ggplot2)
+
+telco_data <- read_excel("Btelco.xls") #na.omit(read.csv("Cereals.csv", header = T, sep = ","))
+
+```
+
+
+
+1. Data Pre-Processing
+2. Inicial variable selection (PCA)
+
+```{r}
+bart_spher(telco_data)
+
+fa.parallel(telco_data, n.obs=916, fa="pc", n.iter=100,main="Scree plots with parallel analysis")
+FA0 <- fa(telco_data, rotate="varimax",nfactors=24, scores=TRUE)
+plot(FA0$values ,xlab="Factor Number",ylab="Eigenvalue",main="Scree plot",cex.lab=1.2,cex.axis=1.2,cex.main=1.8)+abline(h=1)
+
+pc <- principal(telco_data, rotate="varimax",nfactors=6, scores=TRUE)
+print(pc$loadings, cutoff=0.55,sort=TRUE)
+
+```
+
+3. Correlation plot and scaling 
+```{r, fig.width=14, fig.height=12}
+datos_telco <- telco_data
+drop_pca <- c("Age","L_O_S","Dropped_Calls")
+drop <- c(drop_pca)
+  #c("Age","AveWeekend","AveOffPeak","AvePeak","Weekend_calls_Sum","L_O_S","AveNational","Weekend_mins_Sum","Dropped_Calls")
+datos <- datos_telco[,!(names(datos_telco) %in% drop)]
+#datos <- datos_telco
+
+#cor(datos)
+corr <- round(cor(datos, method = "spearman"),1)
+corrplot(corr, method = "square")
+
+#Normalize 
+data_norm <- preProcess(datos, method="range")
+data_norm <- predict(data_norm, datos)
+#data_norm <- scale(datos)
+#row.names(data_norm) <- datos[,1]
+
+#Distances
+d.norm <- dist(data_norm, method = "euclidean")
+#fviz_dist(d.norm, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+```
+
+
+4. Assessing clustering tendency 
+```{r}
+#Assessing clustering tendency 
+gradient.color <- list(low = "steelblue",  high = "white")
+
+data_norm %>% get_clust_tendency(n = 50, gradient = gradient.color)
+
+```
+
+5. Optimal number of clusters (Why to choose 4 instead of 6) 
+```{r}
+#Optimal number of clusters
+#fviz_nbclust(data_norm, hcut, method = "gap_stat")
+gap_stat <- clusGap(data_norm, FUN = hcut, K.max = 10, B = 10)
+print(gap_stat, method = "firstmax")
+fviz_gap_stat(gap_stat)
+
+```
+
+
+6. Initial Distribution of the clusters (analysis of the groups, with the boxplot or the barplot)
+```{r, fig.width=14}
+
+#Single Linkage
+hc1 <- hclust(d.norm, method = "ward.D2")
+
+#Centroides Single Linkage 
+clusters_hc1 <- cutree(hc1, k = 4)
+centroide_hc1 <- aggregate(data_norm, by = list(clusters_hc1), FUN = mean) 
+centroide_hc1 <- round(centroide_hc1,2)
+
+centroide_hc1 <- melt(data = centroide_hc1[,1:ncol(centroide_hc1)], id.vars = "Group.1")
+
+ggplot(centroide_hc1, aes(x = variable, y = value, group = Group.1, color = factor(Group.1), size = 1)) +
+    geom_line(size=0.5)+
+    theme(axis.text.x = element_text(angle = 90))
+
+centroide_hc1
+#clusters_hc1
+
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+
+```
+
+7. Second variable selection (to improve the variability intra-groups) 
+```{r}
+#Variable selection
+centroide_hc <- aggregate(data_norm, by = list(clusters_hc1), FUN = mean) 
+centroide_hc <- round(centroide_hc,2)
+centroide_transpose <- as.data.frame(t(as.matrix(centroide_hc)))
+centroide_transpose <- transform(centroide_transpose, SD=apply(centroide_transpose,1, sd, na.rm = TRUE))
+drop <- row.names(centroide_transpose)[which(centroide_transpose$SD<0.1)] 
+
+
+#drop <- c("AveWeekend","AveOffPeak","AvePeak","Weekend_calls_Sum","AveNational","Weekend_mins_Sum")
+data_norm <- data_norm[,!(names(data_norm) %in% drop)]
+#Distances
+d.norm <- dist(data_norm, method = "euclidean")
+
+#Single Linkage
+hc1 <- hclust(d.norm, method = "ward.D2")
+
+#Centroides Single Linkage 
+clusters_hc1 <- cutree(hc1, k = 4)
+centroide_hc1 <- aggregate(data_norm, by = list(clusters_hc1), FUN = mean) 
+centroide_hc1 <- round(centroide_hc1,2)
+
+centroide_hc1 <- melt(data = centroide_hc1[,1:ncol(centroide_hc1)], id.vars = "Group.1")
+
+ggplot(centroide_hc1, aes(x = variable, y = value, group = Group.1, color = factor(Group.1), size = 1)) +
+    geom_line(size=0.5)+
+    theme(axis.text.x = element_text(angle = 90))
+
+centroide_hc1
+#clusters_hc1
+
+clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+
+```
+
+
+7. Measurement (Within cluster sum of squares by cluster)
+
+8. Customer profiling 
+
+```{r}
+datos <- data.frame(average_cost_min= telco_data$average_cost_min, 
+                    AveNational= telco_data$AveNational, 
+                    Dropped_Calls= telco_data$Dropped_Calls, 
+                    AveOffPeak= telco_data$AveOffPeak, 
+                    AvePeak= telco_data$AvePeak, 
+                    AveWeekend= telco_data$AveWeekend, 
+                    call_cost_per_min= telco_data$call_cost_per_min, 
+                    actual_call_cost= telco_data$`actual call cost`,
+                    Nat_call_cost_Sum= telco_data$Nat_call_cost_Sum,
+                    Weekend_calls_Sum= telco_data$Weekend_calls_Sum,
+                    Age= telco_data$Age,
+                    L_O_S= telco_data$L_O_S, 
+                    Weekend_mins_Sum= telco_data$Weekend_mins_Sum
+                    )
+
+
+datos <-  cbind(clusters_hc1,datos)
+colnames(datos)[1] <- "Group"
+group_means <- aggregate(datos, by = list(clusters_hc1), FUN = mean)
+group_means <- group_means[,!(names(group_means) %in% "Group")]
+
+
+means <- as.data.frame(colMeans(datos))
+colnames(means) <- c("values")
+means <- data.frame(variable = colnames(group_means), value = means$values)
+means <- means[-1,]
+
+plotdata <- gather(group_means, key="variable", value="value", -Group.1)
+ggplot(data = plotdata, aes(variable, value, fill = variable), ylab = "mean") + 
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position="none") +  
+  coord_flip() +
+  facet_wrap(~ Group.1, ncol = 4) +
+  scale_fill_viridis_d(begin = 0.2, end = 0.85)+
+  geom_point(data = means, col = 'red')
+
+```
+
+```{r}
+datos <- data.frame(Peak_calls_Sum= telco_data$Peak_calls_Sum, 
+                    OffPeak_mins_Sum= telco_data$OffPeak_mins_Sum, 
+                    National_calls= telco_data$National_calls, 
+                    Peak_mins_Sum= telco_data$Peak_mins_Sum, 
+                    National_mins= telco_data$National_mins, 
+                    All_calls_mins= telco_data$All_calls_mins, 
+                    Mins_charge= telco_data$Mins_charge,
+                    Total_call_cost= telco_data$Total_call_cost,
+                    International_mins_Sum= telco_data$International_mins_Sum,
+                    OffPeak_calls_Sum= telco_data$OffPeak_calls_Sum,
+                    Total_Cost= telco_data$Total_Cost
+                    )
+
+datos <- cbind(clusters_hc1,datos)
+colnames(datos)[1] <- "Group"
+group_means <- aggregate(datos, by = list(clusters_hc1), FUN = mean)
+group_means <- group_means[,!(names(group_means) %in% "Group")]
+
+
+means <- as.data.frame(colMeans(datos))
+colnames(means) <- c("values")
+means <- data.frame(variable = colnames(group_means), value = means$values)
+means <- means[-1,]
+
+plotdata <- gather(group_means, key="variable", value="value", -Group.1)
+ggplot(data = plotdata, aes(variable, value, fill = variable), ylab = "mean") + 
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position="none") +  
+  coord_flip() +
+  facet_wrap(~ Group.1, ncol = 4) +
+  scale_fill_viridis_d(begin = 0.2, end = 0.85)+
+  geom_point(data = means, col = 'red')
+```
+
