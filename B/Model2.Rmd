@@ -7,7 +7,7 @@ output: html_document
 
 ```{r, results='hide', message=FALSE, warning= FALSE}
 
-#library(DMwR) #Can't install it
+library(DMwR)
 library(factoextra)
 library(reshape2)
 library(ggplot2)
@@ -16,7 +16,7 @@ library(caret)
 library(readxl)
 library(corrplot)
 library(cluster)
-
+library(clValid)
 
 library(knitr)
 library(olsrr)
@@ -36,17 +36,13 @@ telco_data <- read_excel("Btelco.xls") #na.omit(read.csv("Cereals.csv", header =
 
 
 1. Data Pre-Processing
-2. Initial variable selection (PCA)
+2. Inicial variable selection (PCA)
 
 ```{r}
 bart_spher(telco_data)
 
 fa.parallel(telco_data, n.obs=916, fa="pc", n.iter=100,main="Scree plots with parallel analysis")
 FA0 <- fa(telco_data, rotate="varimax",nfactors=24, scores=TRUE)
-
-png("figures/scree_plot.png",width=750)
-plot(FA0$values ,xlab="Factor Number",ylab="Eigenvalue",main="Scree plot",cex.lab=1.2,cex.axis=1.2,cex.main=1.8)+abline(h=1)
-dev.off()
 plot(FA0$values ,xlab="Factor Number",ylab="Eigenvalue",main="Scree plot",cex.lab=1.2,cex.axis=1.2,cex.main=1.8)+abline(h=1)
 
 pc <- principal(telco_data, rotate="varimax",nfactors=6, scores=TRUE)
@@ -57,12 +53,19 @@ print(pc$loadings, cutoff=0.55,sort=TRUE)
 3. Correlation plot and scaling 
 ```{r, fig.width=14, fig.height=12}
 datos_telco <- telco_data
-drop_pca <- c("Age","L_O_S","Dropped_Calls")
+drop_pca <- c("All_calls_mins","National_mins","Total_Cost","Age","L_O_S","Dropped_Calls")
 drop <- c(drop_pca)
+  #c("Age","L_O_S","Dropped_Calls")
   #c("Age","AveWeekend","AveOffPeak","AvePeak","Weekend_calls_Sum","L_O_S","AveNational","Weekend_mins_Sum","Dropped_Calls")
 datos <- datos_telco[,!(names(datos_telco) %in% drop)]
 #datos <- datos_telco
 
+
+#Corr all data 
+corr <- round(cor(telco_data, method = "spearman"),1)
+sort(rowMeans(abs(corr)))
+corrplot(corr, method = "square")
+         
 #cor(datos)
 corr <- round(cor(datos, method = "spearman"),1)
 corrplot(corr, method = "square")
@@ -83,7 +86,7 @@ d.norm <- dist(data_norm, method = "euclidean")
 4. Assessing clustering tendency 
 ```{r}
 #Assessing clustering tendency 
-gradient.color <- list(low = "steelblue",  high = "white")
+gradient.color <- list(low = "steelblue",  high = "pink")
 
 data_norm %>% get_clust_tendency(n = 50, gradient = gradient.color)
 
@@ -94,22 +97,29 @@ data_norm %>% get_clust_tendency(n = 50, gradient = gradient.color)
 #Optimal number of clusters
 #fviz_nbclust(data_norm, hcut, method = "gap_stat")
 gap_stat <- clusGap(data_norm, FUN = hcut, K.max = 10, B = 10)
-png("figures/4_clusters.png",width=750)
 print(gap_stat, method = "firstmax")
-fviz_gap_stat(gap_stat)
-dev.off()
-fviz_gap_stat(gap_stat)
+fviz_gap_stat(gap_stat, maxSE = list(method = "firstSEmax", SE.factor =2))
+
+
+
+# load required packages
+library(factoextra)
+library(NbClust)
+
+# Elbow method
+fviz_nbclust(data_norm, FUN = hcut, method = "wss")
+
 ```
 
 
 6. Initial Distribution of the clusters (analysis of the groups, with the boxplot or the barplot)
-```{r, fig.width=14}
+```{r, fig.width=10}
 
 #Single Linkage
 hc1 <- hclust(d.norm, method = "ward.D2")
 
 #Centroides Single Linkage 
-clusters_hc1 <- cutree(hc1, k = 4)
+clusters_hc1 <- cutree(hc1, k = 6)
 centroide_hc1 <- aggregate(data_norm, by = list(clusters_hc1), FUN = mean) 
 centroide_hc1 <- round(centroide_hc1,2)
 
@@ -117,17 +127,48 @@ centroide_hc1 <- melt(data = centroide_hc1[,1:ncol(centroide_hc1)], id.vars = "G
 
 ggplot(centroide_hc1, aes(x = variable, y = value, group = Group.1, color = factor(Group.1), size = 1)) +
     geom_line(size=0.5)+
-    theme(axis.text.x = element_text(angle = 90))
+    theme(axis.text.x = element_text(angle = 90), text = element_text(size=20))
 
 centroide_hc1
 #clusters_hc1
 
-clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+colores <- as.character(clusters_hc1)
+colores[colores == "1"] <- "#698CAF"
+colores[colores == "2"] <- "#F8A6A6"
+colores[colores == "3"] <- "#ADBCC3"
+colores[colores == "4"] <- "#F490AE"
+colores[colores == "5"] <- "#5DC2CD"
+colores[colores == "6"] <- "#74ABE2"
+
+clusplot(data_norm, clusters_hc1, col.clus = "#214178", shade=FALSE, labels=4,  lines=0, col.p = colores, main = "Cluster Plot") 
+
+
+aggregate(clusters_hc1, by = list(clusters_hc1), FUN = length)
+x.SS <-aggregate(data_norm, by=list(clusters_hc1), function(x) sum(scale(x,scale=FALSE)^2))
+x.SS
+SS <- rowSums(x.SS[, -1]) # Sum of squares for each cluster
+SS
+TSS <- sum(x.SS[, -1])
+TSS
+
+library(clusterSim)
+index.DB(d.norm, clusters_hc1, d=NULL, centrotypes="centroids", p=2, q=2)
+
+
+fa.parallel(data_norm, n.obs=916, fa="pc", n.iter=100,main="Scree plots with parallel analysis")
+pc <- principal(data_norm, rotate="varimax",nfactors=2, scores=TRUE)
+print(pc$loadings, cutoff=0.55,sort=TRUE)
+
+
 
 ```
 
+
+ "ward.D2" 1.550452
+"complete" 1.695559
+
 7. Second variable selection (to improve the variability intra-groups) 
-```{r}
+```{r, fig.width=10}
 #Variable selection
 centroide_hc <- aggregate(data_norm, by = list(clusters_hc1), FUN = mean) 
 centroide_hc <- round(centroide_hc,2)
@@ -136,7 +177,7 @@ centroide_transpose <- transform(centroide_transpose, SD=apply(centroide_transpo
 drop <- row.names(centroide_transpose)[which(centroide_transpose$SD<0.1)] 
 
 
-#drop <- c("AveWeekend","AveOffPeak","AvePeak","Weekend_calls_Sum","AveNational","Weekend_mins_Sum")
+#drop <- c(drop, "All_calls_mins", "National_mins")
 data_norm <- data_norm[,!(names(data_norm) %in% drop)]
 #Distances
 d.norm <- dist(data_norm, method = "euclidean")
@@ -158,12 +199,65 @@ ggplot(centroide_hc1, aes(x = variable, y = value, group = Group.1, color = fact
 centroide_hc1
 #clusters_hc1
 
-clusplot(data_norm, clusters_hc1, color=TRUE, shade=TRUE, lines=0, labels = 4)
+colores <- as.character(clusters_hc1)
+colores[colores == "1"] <- "#698CAF"
+colores[colores == "2"] <- "#F8A6A6"
+colores[colores == "3"] <- "#ADBCC3"
+colores[colores == "4"] <- "#F490AE"
+colores[colores == "5"] <- "#5DC2CD"
+colores[colores == "6"] <- "#74ABE2"
+
+clusplot(data_norm, clusters_hc1, col.clus = "#214178", shade=FALSE, labels=4,  lines=0, col.p = colores, main = "Cluster Plot") 
+
+
+aggregate(clusters_hc1, by = list(clusters_hc1), FUN = length)
+x.SS <-aggregate(data_norm, by=list(clusters_hc1), function(x) sum(scale(x,scale=FALSE)^2))
+x.SS
+SS <- rowSums(x.SS[, -1]) # Sum of squares for each cluster
+SS
+TSS <- sum(x.SS[, -1])
+TSS
+
+dunn(d.norm, clusters_hc1)
+
+library(clusterSim)
+index.DB(d.norm, clusters_hc1, d=NULL, centrotypes="centroids", p=2, q=2)
+
+
+fa.parallel(data_norm, n.obs=916, fa="pc", n.iter=100,main="Scree plots with parallel analysis")
+pc <- principal(data_norm, rotate="varimax",nfactors=2, scores=TRUE)
+print(pc$loadings, cutoff=0.55,sort=TRUE)
+
 
 ```
 
 
 7. Measurement (Within cluster sum of squares by cluster)
+
+```{r}
+#data_norm,clusters_hc1
+x.SS <-aggregate(data_norm, by=list(clusters_hc1), function(x) sum(scale(x,scale=FALSE)^2))
+x.SS
+SS <- rowSums(x.SS[, -1]) # Sum of squares for each cluster
+SS
+TSS <- sum(x.SS[, -1])
+TSS
+
+set.seed(4242)
+x <- matrix(rnorm(125), 25, 5)
+x.dist <- dist(x)
+x.clus <- hclust(x.dist, metho="complete")
+plot(x.clus)
+x.grps <- cutree(x.clus, 3:5)
+
+x.SS <- aggregate(x, by=list(x.grps[, 1]), function(x) sum(scale(x,
+        scale=FALSE)^2))
+x.SS
+SS <- rowSums(x.SS[, -1]) # Sum of squares for each cluster
+TSS <- sum(x.SS[, -1])
+
+```
+
 
 8. Customer profiling 
 
@@ -201,10 +295,9 @@ ggplot(data = plotdata, aes(variable, value, fill = variable), ylab = "mean") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         legend.position="none") +  
   coord_flip() +
-  facet_wrap(~ Group.1, ncol = 4) +
+  facet_wrap(~ Group.1, ncol = 6) +
   scale_fill_viridis_d(begin = 0.2, end = 0.85)+
-  geom_point(data = means, col = 'red') +
-  ggsave("figures/facet_wrap_6.png",width=7.5)
+  geom_point(data = means, col = 'red')
 
 ```
 
@@ -239,8 +332,14 @@ ggplot(data = plotdata, aes(variable, value, fill = variable), ylab = "mean") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         legend.position="none") +  
   coord_flip() +
-  facet_wrap(~ Group.1, ncol = 4) +
+  facet_wrap(~ Group.1, ncol = 6) +
   scale_fill_viridis_d(begin = 0.2, end = 0.85)+
-  geom_point(data = means, col = 'red') +
-  ggsave("figures/facet_wrap_selected_6.png",width=7.5)
+  geom_point(data = means, col = 'red')
 ```
+
+```{r}
+#Final Clusters
+clusters_hc1
+
+```
+
