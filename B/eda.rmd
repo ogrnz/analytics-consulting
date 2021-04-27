@@ -25,12 +25,7 @@ library(gridExtra)
 
 Updated EDA with Vivian's model
 ```{r}
-# Add the new column (clusters_hc1 already in env)
-#telco$group = clusters_hc1 
-#head(telco) #yikes 25 cols
-#write.csv(telco, file="grouped_telco.csv")
-
-telco <- read.csv("4_groups_telco.csv")
+telco <- read.csv("6_groups_telco.csv")
 
 telco$group <- as.factor(telco$group)
 str(telco)
@@ -101,6 +96,8 @@ sub1 <- telco[which(telco$group==1),]
 sub2 <- telco[which(telco$group==2),]
 sub3 <- telco[which(telco$group==3),]
 sub4 <- telco[which(telco$group==4),]
+sub5 <- telco[which(telco$group==5),]
+sub6 <- telco[which(telco$group==6),]
 
 
 ## No more submodel
@@ -138,7 +135,7 @@ hist_col <- function (data, column) {
       geom_freqpoly(binwidth = 30) +
       xlab(column) +
       labs(title=paste0(column)) +
-    ggsave(gsub(" ", "", paste("figures/hist/hist_", column, ".png")))
+    ggsave(gsub(" ", "", paste("figures/hist/6_hist_", column, ".png")))
 }
 ```
 
@@ -152,137 +149,125 @@ histograms
 ### Boxplots
 
 ```{r}
+# Generate a boxplot for each column of the data for each group
 box_col <- function (data, column) {
   ggplot(data = data, aes_string(x = column, y = data$group)) +
     geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups")  +
-    labs(title = paste0(column)) +
+    labs(title = paste0(column)) + scale_y_discrete(limits = rev) + 
     ggsave(gsub(" ", "", paste(
-      "figures/boxplots/bxplt_", column, ".png"
+      "figures/boxplots/6_bxplt_", column, ".png"
     )), width = 2, height = 2)
 }
 ```
 
 ```{r}
 boxplots <- lapply(cols_submodel, box_col, data = telco)
-
 boxplots
 ```
 
 ```{r}
-# Specific plots for report
-fig1 = telco %>% select("group",
-                        "All_calls_mins",
-                        "OffPeak_mins_Sum",
-                        "Peak_mins_Sum")
-#fig1[, 2:4] <- apply(fig1[, 2:4], 2, FUN=scale)
+# Generate a faceted figure of dimensions w*h, with number of columns and rows.
+# Suited for the report
+fig.gen <-
+  function(cols,
+           name,
+           w = 6,
+           h = 3,
+           ncol = 3,
+           nrow = 1,
+           norm = FALSE) {
+    
+    subcols <- append(cols, "group", 0)
+    fig <- telco %>% select(all_of(subcols))
+    
+    if (norm) {
+      fig[, 2:length(subcols)] <- apply(fig[, 2:length(subcols)], 2, FUN = scale)
+      scale_x = "fixed"
+    }
+    else{
+      scale_x = "free_x"
+    }
+    
+    
+    fig.long <- fig %>%
+      gather(key, value, subcols[-1])
+    
+    ggplot(data = fig.long, aes(x = value, y = group, fill = group)) +
+      geom_boxplot() + facet_wrap(~ key,
+                                  scales = scale_x,
+                                  ncol = ncol,
+                                  nrow = nrow) +
+      scale_y_discrete(limits = rev) + theme_minimal() +
+      ggsave(
+        paste0("figures/boxplots/6_bxplt_", name, ".png"),
+        width = w,
+        height = h
+      )
+  }
+```
 
-fig1_long <- fig1 %>%
-  gather(key,
-         value,
-         c("All_calls_mins", "OffPeak_mins_Sum", "Peak_mins_Sum"))
+```{r}
+fig.basic <- fig.gen(c("Age", "L_O_S"), "fig.basic", ncol=2)
+fig.basic
+```
 
-ggplot(data = fig1_long, aes(x = value, y = group, fill = group)) +
-  geom_boxplot() + facet_wrap( ~key, scales="free_x") + scale_y_discrete(limits=rev) +
-  theme_minimal() +
-  ggsave(gsub(" ", "", paste(
-    "figures/boxplots/bxplt_fig1.png"
-  )), width = 6, height = 3)
+
+```{r}
+fig1 <-
+  fig.gen(
+    cols = c("All_calls_mins", "OffPeak_mins_Sum", "Peak_mins_Sum"),
+    name = "fig1"
+  )
+
+fig1.2 <-
+  fig.gen(
+    c(
+      "OffPeak_mins_Sum",
+      "Peak_mins_Sum",
+      "Weekend_mins_Sum", "AvePeak", "AveOffPeak", "AveWeekend"
+    ),
+    "fig1.2",
+    nrow=2,
+    h=6,
+    w=7
+  )
+fig1.2
+
+fig1.3 <- fig.gen(c("AvePeak", "AveOffPeak", "AveWeekend"), "fig1.3")
+fig1.3
+```
+
+```{r}
+fig2 <- fig.gen(c("OffPeak_calls_Sum", "Peak_calls_Sum"), "fig2", w=5, h=3)
+
+fig2.1 <- fig.gen(c("OffPeak_calls_Sum", "Peak_calls_Sum", "Dropped_Calls", "Weekend_calls_Sum"), "fig2", ncol=4, w=7)
+fig2.1
+```
+
+```{r}
+fig3 <-
+  fig.gen(c("National_mins", "International_mins_Sum", "National_calls", "AveNational", "All_calls_mins"),
+          "fig3", w=8, ncol=5)
+fig3
 
 ```
 
 ```{r}
-fig2 = telco %>% select("group",
-                        "OffPeak_calls_Sum",
-                        "Peak_calls_Sum")
-#fig2[, 2:3] <- apply(fig2[, 2:3], 2, FUN=scale)
-
-fig2_long <- fig2 %>%
-  gather(key,
-         value,
-         c("OffPeak_calls_Sum", "Peak_calls_Sum"))
-
-ggplot(data = fig2_long, aes(x = value, y = group, fill = group)) +
-  geom_boxplot() + facet_wrap( ~key, scales="free_x") + scale_y_discrete(limits=rev) +
-  theme_minimal() +
-  ggsave(gsub(" ", "", paste(
-    "figures/boxplots/bxplt_fig2.png"
-  )), width = 5, height = 3)
-```
-
-```{r}
-fig3 = telco %>% select("group",
-                        "National_mins",
-                        "International_mins_Sum",
-                        "National_calls")
-#fig3[, 2:4] <- apply(fig3[, 2:4], 2, FUN=scale)
-
-fig3_long <- fig3 %>%
-  gather(key,
-         value,
-         c("National_mins",
-           "International_mins_Sum",
-           "National_calls"))
-
-ggplot(data = fig3_long, aes(x = value, y = group, fill = group)) +
-  geom_boxplot() + facet_wrap(~key, ncol=4, scales="free_x") + scale_y_discrete(limits = rev) +
-  theme_minimal() +
-  ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_fig3.png")), width = 6, height = 3)
-
-#ggplot(data = fig3_long, aes(x = value, y = key, fill = group)) +
-#  geom_boxplot() + facet_wrap(~group, ncol=4) + scale_y_discrete(limits = #rev) +
-#  theme_minimal() +
-#  ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_fig3.png")), width = #6, height = 3)
-```
-
-```{r}
-fig4.2 = telco %>% select(
-  "group",
+fig4 <- fig.gen(c(
   "Nat_call_cost_Sum",
   "actual.call.cost",
   "Mins_charge",
   "call_cost_per_min"
-)
-#fig4.2[, 2:3] <- apply(fig4.2[, 2:3], 2, FUN = scale)
-
-fig4.2_long <- fig4.2 %>%
-  gather(
-    key,
-    value,
-    c(
-      "Nat_call_cost_Sum",
-      "actual.call.cost",
-      "Mins_charge",
-      "call_cost_per_min"
-    )
-  )
-
-ggplot(data = fig4.2_long, aes(x = value, y = group, fill = group)) +
-  geom_boxplot() + facet_wrap( ~ key, ncol=4, scales="free_x") + scale_y_discrete(limits = rev) +
-  theme_minimal() +
-  ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_fig42.png")), width = 7, height = 3)
-
+), "fig4", w=7, h=3, ncol=4)
+fig4
 ```
 
 ```{r}
-fig6 = telco %>% select("group",
-                        "average_cost_min",
-                        "Total_Cost",
-                        "Total_call_cost")
-#fig6[, 2:4] <- apply(fig6[, 2:4], 2, FUN=scale)
-
-fig6_long <- fig6 %>%
-  gather(key,
-         value,
-         c("average_cost_min",
-           "Total_Cost",
-           "Total_call_cost"))
-
-ggplot(data = fig6_long, aes(x = value, y = group, fill = group)) +
-  geom_boxplot() + facet_wrap( ~ key, scales="free_x") + scale_y_discrete(limits = rev) +
-  theme_minimal() +
-  ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_fig6.png")), width = 6, height = 3)
-
+fig5 <- fig.gen(c("average_cost_min", "Total_Cost", "Total_call_cost"), "fig5")
+fig5
 ```
+
+
 
 ```{r}
 telco.scaled <- telco
@@ -296,12 +281,8 @@ summ.fig.long <- telco.scaled %>%
 ggplot(data = summ.fig.long, aes(x = value, y = key, fill = group)) +
   geom_boxplot() + facet_wrap( ~ group, ncol=4) + scale_y_discrete(limits = rev) +
   theme_minimal() +
-  ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_summfig.png")), width = 6, height = 3)
+  ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_summfig.png")), width = 10, height = 6)
 
-#ggplot(data = fig3_long, aes(x = value, y = key, fill = group)) +
-#  geom_boxplot() + facet_wrap(~group, ncol=4) + scale_y_discrete(limits = #rev) +
-#  theme_minimal() +
-#  ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_fig3.png")), width = #6, height = 3)
 ```
 
 

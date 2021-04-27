@@ -340,6 +340,8 @@ ggplot(data = plotdata, aes(variable, value, fill = variable), ylab = "mean") +
 ```{r}
 #Final Clusters
 clusters_hc1
-
+head(telco_data)
+telco_data$group <- clusters_hc1
+write.csv(telco_data, "6_groups_telco.csv", row.names = FALSE)
 ```
 
