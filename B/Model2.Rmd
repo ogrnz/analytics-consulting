@@ -7,7 +7,6 @@ output: html_document
 
 ```{r, results='hide', message=FALSE, warning= FALSE}
 
-library(DMwR)
 library(factoextra)
 library(reshape2)
 library(ggplot2)
@@ -36,13 +35,17 @@ telco_data <- read_excel("Btelco.xls") #na.omit(read.csv("Cereals.csv", header =
 
 
 1. Data Pre-Processing
-2. Inicial variable selection (PCA)
+2. Initial variable selection (PCA)
 
 ```{r}
 bart_spher(telco_data)
 
 fa.parallel(telco_data, n.obs=916, fa="pc", n.iter=100,main="Scree plots with parallel analysis")
 FA0 <- fa(telco_data, rotate="varimax",nfactors=24, scores=TRUE)
+
+png("figures/scree_plot.png",width=750)
+plot(FA0$values ,xlab="Factor Number",ylab="Eigenvalue",main="Scree plot",cex.lab=1.2,cex.axis=1.2,cex.main=1.8)+abline(h=1)
+dev.off()
 plot(FA0$values ,xlab="Factor Number",ylab="Eigenvalue",main="Scree plot",cex.lab=1.2,cex.axis=1.2,cex.main=1.8)+abline(h=1)
 
 pc <- principal(telco_data, rotate="varimax",nfactors=6, scores=TRUE)
@@ -90,9 +93,11 @@ data_norm %>% get_clust_tendency(n = 50, gradient = gradient.color)
 #Optimal number of clusters
 #fviz_nbclust(data_norm, hcut, method = "gap_stat")
 gap_stat <- clusGap(data_norm, FUN = hcut, K.max = 10, B = 10)
+png("figures/4_clusters.png",width=750)
 print(gap_stat, method = "firstmax")
 fviz_gap_stat(gap_stat)
-
+dev.off()
+fviz_gap_stat(gap_stat)
 ```
 
 
@@ -139,7 +144,7 @@ d.norm <- dist(data_norm, method = "euclidean")
 hc1 <- hclust(d.norm, method = "ward.D2")
 
 #Centroides Single Linkage 
-clusters_hc1 <- cutree(hc1, k = 4)
+clusters_hc1 <- cutree(hc1, k = 6)
 centroide_hc1 <- aggregate(data_norm, by = list(clusters_hc1), FUN = mean) 
 centroide_hc1 <- round(centroide_hc1,2)
 
@@ -197,7 +202,8 @@ ggplot(data = plotdata, aes(variable, value, fill = variable), ylab = "mean") +
   coord_flip() +
   facet_wrap(~ Group.1, ncol = 4) +
   scale_fill_viridis_d(begin = 0.2, end = 0.85)+
-  geom_point(data = means, col = 'red')
+  geom_point(data = means, col = 'red') +
+  ggsave("figures/facet_wrap_6.png",width=7.5)
 
 ```
 
@@ -234,6 +240,7 @@ ggplot(data = plotdata, aes(variable, value, fill = variable), ylab = "mean") +
   coord_flip() +
   facet_wrap(~ Group.1, ncol = 4) +
   scale_fill_viridis_d(begin = 0.2, end = 0.85)+
-  geom_point(data = means, col = 'red')
+  geom_point(data = means, col = 'red') +
+  ggsave("figures/facet_wrap_selected_6.png",width=7.5)
 ```
 
