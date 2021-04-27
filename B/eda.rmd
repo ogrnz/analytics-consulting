@@ -81,6 +81,12 @@ We have no NAs.
 ```
 
 --> No more subset
+```{r}
+ggplot(data=stack(telco), aes(ind, values)) + geom_boxplot() + theme_minimal() +
+  theme(axis.text.x = element_text(angle=90)) +  
+  xlab("variables") + ggsave("figures/bxplt_all.png", width=7, height=4)
+```
+
 
 ### Misc
 
@@ -152,11 +158,11 @@ histograms
 # Generate a boxplot for each column of the data for each group
 box_col <- function (data, column) {
   ggplot(data = data, aes_string(x = column, y = data$group)) +
-    geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups")  +
+    geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups")  + theme_minimal() + 
     labs(title = paste0(column)) + scale_y_discrete(limits = rev) + 
     ggsave(gsub(" ", "", paste(
       "figures/boxplots/6_bxplt_", column, ".png"
-    )), width = 2, height = 2)
+    )), width = 3, height = 2)
 }
 ```
 
