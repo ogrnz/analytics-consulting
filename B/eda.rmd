@@ -279,15 +279,25 @@ fig5
 telco.scaled <- telco
 telco.scaled[, 1:24] <- apply(telco.scaled[, 1:24], 2, FUN=scale)
 
-summ.fig.long <- telco.scaled %>%
+summ.fig.longA <- telco.scaled[c(1:12, 25)] %>%
   gather(key,
          value,
-        names(telco)[names(telco) != "group"])
+        names(telco[1:12])[names(telco[1:12]) != "group"])
 
-ggplot(data = summ.fig.long, aes(x = value, y = key, fill = group)) +
-  geom_boxplot() + facet_wrap( ~ group, ncol=4) + scale_y_discrete(limits = rev) +
+summ.fig.longB <- telco.scaled %>%
+  gather(key,
+         value,
+        names(telco[13:24])[names(telco[13:24]) != "group"])
+
+ggplot(data = summ.fig.longA, aes(x = value, y = key, fill = group)) +
+  geom_boxplot() + facet_wrap( ~ group, ncol=6) + scale_y_discrete(limits = rev) +
   theme_minimal() +
-  ggsave(gsub(" ", "", paste("figures/boxplots/bxplt_summfig.png")), width = 10, height = 6)
+  ggsave(gsub(" ", "", paste("figures/boxplots/6_bxplt_summfigA.png")), width = 10, height = 6)
+
+ggplot(data = summ.fig.longB, aes(x = value, y = key, fill = group)) +
+  geom_boxplot() + facet_wrap( ~ group, ncol=6) + scale_y_discrete(limits = rev) +
+  theme_minimal() +
+  ggsave(gsub(" ", "", paste("figures/boxplots/6_bxplt_summfigB.png")), width = 10, height = 6)
 
 ```
 
