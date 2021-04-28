@@ -125,7 +125,7 @@ cols_submodel <- colnames(telco)[-25]
 ### General
 ```{r}
 ggplot(data = telco, aes(x = group, fill = group)) + geom_bar() +
-  scale_fill_viridis_d() +
+  scale_fill_viridis_d(begin = 0.2, end = 0.85) + theme_minimal() + 
   ggsave("figures/barplot_groups.png")
 ```
 
@@ -139,7 +139,7 @@ hist_col <- function (data, column) {
     }
   ggplot(data = data, aes_string(x = column, color = data$group)) +
       geom_freqpoly(binwidth = 30) +
-      xlab(column) +
+      xlab(column) + theme_minimal() + scale_fill_viridis_d(begin = 0.2, end = 0.85) +
       labs(title=paste0(column)) +
     ggsave(gsub(" ", "", paste("figures/hist/6_hist_", column, ".png")))
 }
@@ -147,7 +147,6 @@ hist_col <- function (data, column) {
 
 ```{r}
 histograms <- lapply(cols_submodel, hist_col, data = telco)
-
 histograms
 ```
 
@@ -158,7 +157,8 @@ histograms
 # Generate a boxplot for each column of the data for each group
 box_col <- function (data, column) {
   ggplot(data = data, aes_string(x = column, y = data$group)) +
-    geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups")  + theme_minimal() + 
+    geom_boxplot(mapping = aes(color = group)) + xlab(column) + ylab("groups") +
+    scale_fill_viridis_d(begin = 0.2, end = 0.85) + theme_minimal() + 
     labs(title = paste0(column)) + scale_y_discrete(limits = rev) + 
     ggsave(gsub(" ", "", paste(
       "figures/boxplots/6_bxplt_", column, ".png"
@@ -203,6 +203,7 @@ fig.gen <-
                                   scales = scale_x,
                                   ncol = ncol,
                                   nrow = nrow) +
+      scale_fill_viridis_d(begin = 0.2, end = 0.85) +
       scale_y_discrete(limits = rev) + theme_minimal() +
       ggsave(
         paste0("figures/boxplots/6_bxplt_", name, ".png"),
@@ -290,12 +291,14 @@ summ.fig.longB <- telco.scaled %>%
         names(telco[13:24])[names(telco[13:24]) != "group"])
 
 ggplot(data = summ.fig.longA, aes(x = value, y = key, fill = group)) +
-  geom_boxplot() + facet_wrap( ~ group, ncol=6) + scale_y_discrete(limits = rev) +
+  geom_boxplot() + scale_fill_viridis_d(begin = 0.2, end = 0.85) + 
+  facet_wrap( ~ group, ncol=6) + scale_y_discrete(limits = rev) +
   theme_minimal() +
   ggsave(gsub(" ", "", paste("figures/boxplots/6_bxplt_summfigA.png")), width = 10, height = 6)
 
 ggplot(data = summ.fig.longB, aes(x = value, y = key, fill = group)) +
-  geom_boxplot() + facet_wrap( ~ group, ncol=6) + scale_y_discrete(limits = rev) +
+  geom_boxplot() + scale_fill_viridis_d(begin = 0.2, end = 0.85) +
+  facet_wrap( ~ group, ncol=6) + scale_y_discrete(limits = rev) +
   theme_minimal() +
   ggsave(gsub(" ", "", paste("figures/boxplots/6_bxplt_summfigB.png")), width = 10, height = 6)
 
