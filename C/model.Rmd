@@ -1,0 +1,112 @@
+---
+title: "Untitled"
+author: "Sneha Santha Prabakar"
+date: "5/5/2021"
+output: html_document
+---
+
+
+
+```{r}
+library("readxl")
+library("caret")
+library("rpart")
+library("rpart.plot")
+library("imbalance")
+```
+
+```{r}
+df = read_excel("Cheadinjury.xls")
+dim(df)
+
+df = as.data.frame(df)
+str(df)
+```
+
+
+# Part 1: Decision rules for Clinically Important Brain Injury
+
+```{r}
+df[,] = lapply(df[,], as.factor)
+str(df)
+
+# Class distribution
+table(df$clinically.important.brain.injury)
+```
+
+```{r}
+# Split data into train and test data
+set.seed(1)
+train_index = sample(row.names(df), 0.6*dim(df)[1])
+train_df = df[train_index, ]
+test_index = setdiff(row.names(df), train_index)
+test_df = df[test_index, ]
+table(train_df$clinically.important.brain.injury)
+```
+
+```{r}
+# Over-sampling the minority class
+minority_class_df = train_df[train_df$clinically.important.brain.injury==1, ]
+minority_class_df_2 =  minority_class_df[rep(seq_len(nrow(minority_class_df)), 16), ]
+
+majority_class_df = train_df[train_df$clinically.important.brain.injury==0, ]
+df_oversmp = rbind(majority_class_df, minority_class_df_2)
+
+# Shuffle the dataset
+shuffle_index = sample(1:nrow(df_oversmp))
+df_oversmp = df_oversmp[shuffle_index,]
+
+# New distribution
+table(df_oversmp$clinically.important.brain.injury)
+```
+
+```{r}
+# Decision Tree 
+model = rpart(clinically.important.brain.injury~., data=df_oversmp, method="class")
+rpart.plot(model)
+```
+
+```{r}
+# Test data metrics
+test_predict = predict(model, test_df[, -11], type="class")
+#test_predict
+confusionMatrix(test_predict, test_df[,11], positive = "1")
+```
+
+
+# Part 2: High-risk factors
+
+```{r}
+imp_inj = df[df$clinically.important.brain.injury==1, ]
+table(imp_inj$high.risk)
+
+set.seed(1)
+
+train_index = sample(row.names(imp_inj), 0.6*dim(imp_inj)[1])
+train_df = imp_inj[train_index, ]
+test_index = setdiff(row.names(imp_inj), train_index)
+test_df = imp_inj[test_index, ]
+
+table(train_df$high.risk)
+table(test_df$high.risk)
+```
+
+
+```{r}
+model = rpart(high.risk~., data=train_df, method="class")
+rpart.plot(model)
+```
+
+```{r}
+model$variable.importance
+```
+
+
+
+```{r}
+test_predict = predict(model, test_df[, -7], type="class")
+#test_predict
+confusionMatrix(test_predict, test_df[,7], positive = "1")
+```
+
+
