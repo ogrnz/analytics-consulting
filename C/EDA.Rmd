@@ -130,17 +130,37 @@ head %>%
 
 
 head %>%
-  ggplot(aes(x = clinically.important.brain.injury)) +
+  ggplot(aes(x = clinically.important.brain.injury,fill=clinically.important.brain.injury)) +
   geom_histogram(stat = "count") +
-  xlab("clinically.important.brain.injury") +
-  labs(title = "clinically.important.brain.injury") +
+  labs(title = "Patients having a clinically important brain injury",
+       y="Count") +
+  scale_x_discrete(name ="Brain injury?",labels=c("no","yes")) +
+  theme_classic()+
+  scale_fill_viridis_d(direction=-1, option="cividis")+
+  theme(axis.text=element_text(size=14))+
+  theme(legend.position = "none")+
   ggsave(paste0(
     "figures/histograms/hist_",
     "clinically.important.brain.injury",
     ".png"
-  ))
+  ),height=7,width=5)
 
-
+head %>%
+  filter(high.risk==1) %>% 
+  ggplot(aes(x = clinically.important.brain.injury,fill=clinically.important.brain.injury)) +
+  geom_histogram(stat = "count") +
+  labs(title = "High risk patients having a clinically important brain injury",
+       y="Count") +
+  scale_x_discrete(name ="Brain injury?",labels=c("no","yes")) +
+  theme_classic()+
+  scale_fill_viridis_d(direction=-1, option="cividis")+
+  theme(axis.text=element_text(size=14))+
+  theme(legend.position = "none")+
+  ggsave(paste0(
+    "figures/histograms/hist_",
+    "clinically.important.brain.injury_AND_high_risk",
+    ".png"
+  ),height=7,width=6)
 
 ```
 
