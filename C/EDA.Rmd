@@ -128,34 +128,46 @@ head %>%
   labs(title = "vomiting") +
   ggsave(paste0("figures/histograms/hist_", "vomiting", ".png"))
 
+clin = sum(head$clinically.important.brain.injury==0)
+no_clin = sum(head$clinically.important.brain.injury==1)
 
 head %>%
   ggplot(aes(x = clinically.important.brain.injury,fill=clinically.important.brain.injury)) +
   geom_histogram(stat = "count") +
   labs(title = "Patients having a clinically important brain injury",
-       y="Count") +
-  scale_x_discrete(name ="Brain injury?",labels=c("no","yes")) +
+       y="Number of patients") +
+  scale_x_discrete(name ="Clinically important brain injury",labels=c("no","yes")) +
   theme_classic()+
   scale_fill_viridis_d(direction=-1, option="cividis")+
   theme(axis.text=element_text(size=14))+
   theme(legend.position = "none")+
+  annotate(geom="text",x=1,y=clin-10,
+           label= paste(clin),color="black",size=6,vjust=0)+
+  annotate(geom="text",x=2,y=no_clin-10,
+           label= paste(no_clin),color="black",size=6,vjust=0)+
   ggsave(paste0(
     "figures/histograms/hist_",
     "clinically.important.brain.injury",
-    ".png"
-  ),height=7,width=5)
+    ".png"),height=7,width=5)
+
+clin = sum(head$clinically.important.brain.injury==0&head$high.risk==1)
+no_clin = sum(head$clinically.important.brain.injury==1&head$high.risk==1)
 
 head %>%
   filter(high.risk==1) %>% 
   ggplot(aes(x = clinically.important.brain.injury,fill=clinically.important.brain.injury)) +
   geom_histogram(stat = "count") +
   labs(title = "High risk patients having a clinically important brain injury",
-       y="Count") +
-  scale_x_discrete(name ="Brain injury?",labels=c("no","yes")) +
+       y="Number of patients") +
+  scale_x_discrete(name ="Clinically important brain injury",labels=c("no","yes")) +
   theme_classic()+
   scale_fill_viridis_d(direction=-1, option="cividis")+
   theme(axis.text=element_text(size=14))+
   theme(legend.position = "none")+
+  annotate(geom="text",x=1,y=clin-10,
+           label= paste(clin),color="black",size=6,vjust=0)+
+  annotate(geom="text",x=2,y=no_clin-10,
+           label= paste(no_clin),color="black",size=6,vjust=0)+
   ggsave(paste0(
     "figures/histograms/hist_",
     "clinically.important.brain.injury_AND_high_risk",
